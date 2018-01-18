@@ -8,6 +8,8 @@
 #include <fstream>
 #include <sstream>
 
+#include "Camera.h"
+
 //3D-math
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
@@ -44,16 +46,11 @@ GLuint textureID;
 #define PI 3.14159265359f
 #define ROTATION -1.0f
 
-//View properties
-glm::vec3 cameraPos(0.0f, 0.0f, 3.0f);
-glm::vec3 lookAtVector(0.0f, 0.0f, -1.0f);
-glm::vec3 upVector(0.0f, 1.0f, 0.0f);
-float cameraSpeed = 5.0f;
+//My Camera
+Camera camera;
 
 //Pitch/Yaw Properties
 bool firstMouse = true;
-float yaw = -90.0f;
-float pitch = 0.0f;
 float lastX = 800.0f / 2.0f;
 float lastY = 600.0f / 2.0f;
 
@@ -62,13 +59,6 @@ glm::mat4 WorldMatrix()
 	glm::mat4 World;
 
 	return World;
-}
-
-glm::mat4 ViewMatrix()
-{
-	glm::mat4 View = glm::lookAt(cameraPos, cameraPos + lookAtVector, upVector);
-
-	return View;
 }
 
 glm::mat4 ProjectionMatrix()
@@ -83,7 +73,6 @@ glm::mat4 ProjectionMatrix()
 
 //My matrices
 glm::mat4 World = WorldMatrix();
-glm::mat4 View = ViewMatrix();
 glm::mat4 Projection = ProjectionMatrix();
 
 //The struct to be stored in a buffer
@@ -95,7 +84,7 @@ struct valuesFromCPUToGPU
 };
 
 //The buffer data I send
-valuesFromCPUToGPU myBufferData = { World, View, Projection };
+valuesFromCPUToGPU myBufferData = { World, camera.getView(), Projection };
 
 //Deltatime Variables
 struct Time {
@@ -485,18 +474,18 @@ void processInput(GLFWwindow *window)
 
 	//View inputs
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		cameraPos += (cameraSpeed * time.deltaTime) * lookAtVector;
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getLookAtVector());
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		cameraPos -= (cameraSpeed * time.deltaTime) * lookAtVector;
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getLookAtVector() * -1.0f);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		cameraPos -= glm::normalize(glm::cross(lookAtVector, upVector)) * (cameraSpeed * time.deltaTime);
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())) * -1.0f);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		cameraPos += glm::normalize(glm::cross(lookAtVector, upVector)) * (cameraSpeed * time.deltaTime);
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())));
 
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		cameraPos += (cameraSpeed * time.deltaTime) * upVector;
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-		cameraPos -= (cameraSpeed * time.deltaTime) * upVector;
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);
 }
 
 void Render()
@@ -518,10 +507,8 @@ void Render()
 	//Adds a rotation to the World-matrix, making the object(Veritices spinn)
 	myBufferData.World = glm::rotate(myBufferData.World, ROTATION * time.deltaTime, glm::vec3(0, 1, 0));
 
-	//Adds a movement to view
-	//myBufferData.View = glm::lookAt(cameraPos, cameraPos + lookAtVector, upVector);
-	glm::mat4 view = glm::lookAt(cameraPos, cameraPos + lookAtVector, upVector);
-	myBufferData.View = view;
+	//Update View buffer with Camera
+	myBufferData.View = camera.getView();
 
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	//Update data (Constant Buffer)
@@ -544,24 +531,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	lastX = xpos;
 	lastY = ypos;
 
-	float sensitivity = 0.05f;
-	xoffset *= sensitivity;
-	yoffset *= sensitivity;
-
-	yaw += xoffset;
-	pitch += yoffset;
-
-	//Check if within bounderys
-	if (pitch > 89.0f)
-		pitch = 89.0f;
-	if (pitch < -89.0f)
-		pitch = -89.0f;
-
-	glm::vec3 front;
-	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	front.y = sin(glm::radians(pitch));
-	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	lookAtVector = glm::normalize(front);
+	camera.mouseMovement(xoffset, yoffset);
 }
 //
 //void loadTexture(const char* texturePath, GLuint &textureID)
