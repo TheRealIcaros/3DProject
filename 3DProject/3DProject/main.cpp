@@ -15,9 +15,6 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
-//Namespaces
-using namespace std;
-
 void initiateGLFW();
 GLFWwindow *createWindow();
 void gladTest();
@@ -41,10 +38,6 @@ GLuint UBO = 0;
 
 //Texture
 GLuint textureID;
-
-//My Define Values
-#define PI 3.14159265359f
-#define ROTATION -1.0f
 
 //My Camera
 Camera camera;
@@ -452,7 +445,6 @@ void setTriangleData()
 
 	//loadTexture("../Textures/durkplat.bmp", textureID);
 	loadBMPTexture("../Textures/durkplat.bmp", textureID);
-	//loadBMPTexture("../Textures/Crate.bmp", textureID);
 }
 
 void processInput(GLFWwindow *window)
@@ -533,7 +525,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 	camera.mouseMovement(xoffset, yoffset);
 }
-//
+
 //void loadTexture(const char* texturePath, GLuint &textureID)
 //{
 //	GLint width, height, nrChannels;	//The width, height and number of color channels

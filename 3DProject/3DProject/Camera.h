@@ -1,5 +1,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
+
+using namespace std;
+
 #include "Defines.h"
 
 //3D-math
@@ -7,7 +10,6 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
-using namespace std;
 
 class Camera
 {
