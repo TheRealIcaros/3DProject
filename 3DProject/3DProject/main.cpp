@@ -1,14 +1,12 @@
 #include <glad\glad.h>
-
-#include <GLFW/glfw3.h>
-#include <fstream>
 #include <crtdbg.h>
 #include <stb_image.h> //For loading textures and images
 #include <stdio.h>
 #include <sstream>
-#include <iostream>
+
+//Own classes
 #include "Camera.h"
-//#include "ShaderClass.h"
+#include "ShaderCreater.h"
 
 //3D-math
 #include <glm.hpp>
@@ -25,7 +23,7 @@ void createShaders();
 void setTriangleData();
 void Render();
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void loadTexture(const char* texturePath, GLuint &textureID);
+//void loadTexture(const char* texturePath, GLuint &textureID);
 GLuint loadBMPTexture(const char* texturePath, GLuint &textureID);
 
 //GLuint Variables
@@ -80,7 +78,8 @@ struct valuesFromCPUToGPU
 valuesFromCPUToGPU myBufferData = { World, camera.getView(), Projection };
 
 //Deltatime Variables
-struct Time {
+struct Time
+{
 	float deltaTime;
 	float lastFrame;
 	int frames;

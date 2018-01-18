@@ -29,7 +29,7 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ShaderClass.cpp">
+    <ClCompile Include="ShaderCreater.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -43,7 +43,7 @@
     <ClInclude Include="Defines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderClass.h">
+    <ClInclude Include="ShaderCreater.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
