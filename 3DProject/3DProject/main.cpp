@@ -1,14 +1,14 @@
 #include <glad\glad.h>
+
 #include <GLFW/glfw3.h>
+#include <fstream>
 #include <crtdbg.h>
 #include <stb_image.h> //For loading textures and images
-
-#include <iostream>
 #include <stdio.h>
-#include <fstream>
 #include <sstream>
-
+#include <iostream>
 #include "Camera.h"
+//#include "ShaderClass.h"
 
 //3D-math
 #include <glm.hpp>
