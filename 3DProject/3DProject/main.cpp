@@ -19,15 +19,19 @@ void gladTest();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void calculateDeltaTime();
 void processInput(GLFWwindow *window);
-void createShaders();
+//void createShaders();
 void setTriangleData();
 void Render();
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 //void loadTexture(const char* texturePath, GLuint &textureID);
 GLuint loadBMPTexture(const char* texturePath, GLuint &textureID);
+void createUBO();
+
+//Shader
+ShaderCreater defaultShader;
 
 //GLuint Variables
-GLuint shaderProgram = 0;
+//GLuint shaderProgram = 0;
 GLuint VBO = 0;
 GLuint VAO = 0;
 
@@ -120,7 +124,11 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 	//Create Shaders
-	createShaders();
+	defaultShader.createShaders("VertexShader", "GeometryShader", "FragmentShader");
+	//createShaders();
+
+	//Create UBO
+	createUBO();
 
 	//Set triangle-data
 	setTriangleData();
@@ -209,125 +217,125 @@ void calculateDeltaTime()
 	}
 }
 
-void createShaders()
-{
-	//These variables handles error messages
-	GLint success = 0;
-	char infoLog[512];
-
-	//Vertex shader
-	GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-	//Open glsl file and put it in a string
-	ifstream shaderFile("VertexShader.glsl");
-	std::string shaderText((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
-	shaderFile.close();
-	//Make a double pointer (only valid here)
-	const char* shaderTextPtr = shaderText.c_str();
-	//Ask GL to load this
-	glShaderSource(vs, 1, &shaderTextPtr, nullptr);
-
-	//Compile shader
-	glCompileShader(vs);
-
-	//Test if compilation of shader-file went ok
-	glGetShaderiv(vs, GL_COMPILE_STATUS, &success);
-	if (success == GL_FALSE)
-	{
-		glGetShaderInfoLog(vs, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-		system("PAUSE");
-		glDeleteShader(vs);
-		exit(-1);
-	}
-
-	//Geometry shader
-	GLuint gs = glCreateShader(GL_GEOMETRY_SHADER);
-	//Open glsl file and put it in a string
-	shaderFile.open("GeometryShader.glsl");
-	shaderText.assign((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
-	shaderFile.close();
-	//Make a double pointer (only valid here)
-	shaderTextPtr = shaderText.c_str();
-	//Ask GL to load this
-	glShaderSource(gs, 1, &shaderTextPtr, nullptr);
-
-	//////Compile shader
-	glCompileShader(gs);
-
+//void createShaders()
+//{
+	////These variables handles error messages
+	//GLint success = 0;
+	//char infoLog[512];
+	//
+	////Vertex shader
+	//GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+	////Open glsl file and put it in a string
+	//ifstream shaderFile("VertexShader.glsl");
+	//std::string shaderText((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
+	//shaderFile.close();
+	////Make a double pointer (only valid here)
+	//const char* shaderTextPtr = shaderText.c_str();
+	////Ask GL to load this
+	//glShaderSource(vs, 1, &shaderTextPtr, nullptr);
+	//
+	////Compile shader
+	//glCompileShader(vs);
+	//
 	////Test if compilation of shader-file went ok
-	glGetShaderiv(gs, GL_COMPILE_STATUS, &success);
-	if (success == GL_FALSE)
-	{
-		glGetShaderInfoLog(gs, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::GEOMETRY::COMPILATION_FAILED\n" << infoLog << std::endl;
-		system("PAUSE");
-		glDeleteShader(gs);
-		exit(-1);
-	}
-
-	//Fragment shader
-	GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-	//Open glsl file and put it in a string
-	shaderFile.open("FragmentShader.glsl");
-	shaderText.assign((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
-	shaderFile.close();
-	//Make a double pointer (only valid here)
-	shaderTextPtr = shaderText.c_str();
-	//Ask GL to load this
-	glShaderSource(fs, 1, &shaderTextPtr, nullptr);
-
-	//Compile shader
-	glCompileShader(fs);
-
-	//Test if compilation of shader-file went ok
-	glGetShaderiv(fs, GL_COMPILE_STATUS, &success);
-	if (success == GL_FALSE)
-	{
-		glGetShaderInfoLog(fs, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-		system("PAUSE");
-		glDeleteShader(fs);
-		exit(-1);
-	}
-	
-	//Link shader-program (connect vs,(gs) and fs)
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vs);
-	glAttachShader(shaderProgram, gs);
-	glAttachShader(shaderProgram, fs);
-	glLinkProgram(shaderProgram);
-
-	//Create a Uniform Buffer Object(UBO)
-	//Create a buffer name
-	glGenBuffers(1, &UBO);
-	//Bind buffer to work further with it
-	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-	//Allocate memory for the buffer in the GPU
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(valuesFromCPUToGPU), NULL, GL_STATIC_DRAW);
-	//Because we hard-coded "Binding = 3" in the shader we can do this:
-	//Bind Uniform Buffer to binding point 3 (without caring about index of UBO)
-	glBindBufferBase(GL_UNIFORM_BUFFER, 3, UBO);
-	//Good practice , unbind buffer
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-	//Checks if the linking between the shaders works
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
-		system("PAUSE");
-		exit(-1);
-	}
-
-	// in any case (compile sucess or not), we only want to keep the 
-	// Program around, not the shaders.
-	glDetachShader(shaderProgram, vs);
-	glDetachShader(shaderProgram, gs);
-	glDetachShader(shaderProgram, fs);
-	glDeleteShader(vs);
-	glDeleteShader(gs);
-	glDeleteShader(fs);
-}
+	//glGetShaderiv(vs, GL_COMPILE_STATUS, &success);
+	//if (success == GL_FALSE)
+	//{
+	//	glGetShaderInfoLog(vs, 512, NULL, infoLog);
+	//	std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+	//	system("PAUSE");
+	//	glDeleteShader(vs);
+	//	exit(-1);
+	//}
+	//
+	////Geometry shader
+	//GLuint gs = glCreateShader(GL_GEOMETRY_SHADER);
+	////Open glsl file and put it in a string
+	//shaderFile.open("GeometryShader.glsl");
+	//shaderText.assign((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
+	//shaderFile.close();
+	////Make a double pointer (only valid here)
+	//shaderTextPtr = shaderText.c_str();
+	////Ask GL to load this
+	//glShaderSource(gs, 1, &shaderTextPtr, nullptr);
+	//
+	////////Compile shader
+	//glCompileShader(gs);
+	//
+	//////Test if compilation of shader-file went ok
+	//glGetShaderiv(gs, GL_COMPILE_STATUS, &success);
+	//if (success == GL_FALSE)
+	//{
+	//	glGetShaderInfoLog(gs, 512, NULL, infoLog);
+	//	std::cout << "ERROR::SHADER::GEOMETRY::COMPILATION_FAILED\n" << infoLog << std::endl;
+	//	system("PAUSE");
+	//	glDeleteShader(gs);
+	//	exit(-1);
+	//}
+	//
+	////Fragment shader
+	//GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+	////Open glsl file and put it in a string
+	//shaderFile.open("FragmentShader.glsl");
+	//shaderText.assign((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
+	//shaderFile.close();
+	////Make a double pointer (only valid here)
+	//shaderTextPtr = shaderText.c_str();
+	////Ask GL to load this
+	//glShaderSource(fs, 1, &shaderTextPtr, nullptr);
+	//
+	////Compile shader
+	//glCompileShader(fs);
+	//
+	////Test if compilation of shader-file went ok
+	//glGetShaderiv(fs, GL_COMPILE_STATUS, &success);
+	//if (success == GL_FALSE)
+	//{
+	//	glGetShaderInfoLog(fs, 512, NULL, infoLog);
+	//	std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+	//	system("PAUSE");
+	//	glDeleteShader(fs);
+	//	exit(-1);
+	//}
+	//
+	////Link shader-program (connect vs,(gs) and fs)
+	//shaderProgram = glCreateProgram();
+	//glAttachShader(shaderProgram, vs);
+	//glAttachShader(shaderProgram, gs);
+	//glAttachShader(shaderProgram, fs);
+	//glLinkProgram(shaderProgram);
+	//
+	////Create a Uniform Buffer Object(UBO)
+	////Create a buffer name
+	//glGenBuffers(1, &UBO);
+	////Bind buffer to work further with it
+	//glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+	////Allocate memory for the buffer in the GPU
+	//glBufferData(GL_UNIFORM_BUFFER, sizeof(valuesFromCPUToGPU), NULL, GL_STATIC_DRAW);
+	////Because we hard-coded "Binding = 3" in the shader we can do this:
+	////Bind Uniform Buffer to binding point 3 (without caring about index of UBO)
+	//glBindBufferBase(GL_UNIFORM_BUFFER, 3, UBO);
+	////Good practice , unbind buffer
+	//glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	//
+	////Checks if the linking between the shaders works
+	//glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+	//if (!success) {
+	//	glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+	//	std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
+	//	system("PAUSE");
+	//	exit(-1);
+	//}
+	//
+	//// in any case (compile sucess or not), we only want to keep the 
+	//// Program around, not the shaders.
+	//glDetachShader(shaderProgram, vs);
+	//glDetachShader(shaderProgram, gs);
+	//glDetachShader(shaderProgram, fs);
+	//glDeleteShader(vs);
+	//glDeleteShader(gs);
+	//glDeleteShader(fs);
+//}
 
 void setTriangleData()
 {
@@ -428,12 +436,12 @@ void setTriangleData()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //Adds the vertices-data to said buffer 
 
 
-	GLuint vertexPos = glGetAttribLocation(shaderProgram, "vertexPosition");
+	GLuint vertexPos = glGetAttribLocation(defaultShader.getShaderProgramID(), "vertexPosition");
 
 	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	GLuint texture = glGetAttribLocation(shaderProgram, "vertex_tex");
+	GLuint texture = glGetAttribLocation(defaultShader.getShaderProgramID(), "vertex_tex");
 	glVertexAttribPointer(texture, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	
 	glEnableVertexAttribArray(1);
@@ -488,7 +496,7 @@ void Render()
 	// use the color to clear the color buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glUseProgram(shaderProgram);
+	glUseProgram(defaultShader.getShaderProgramID());
 	
 	//glActiveTexture(GL_TEXTURE0);
 	//glBindTexture(GL_TEXTURE_2D, textureID);
@@ -593,4 +601,20 @@ GLuint loadBMPTexture(const char* texturePath, GLuint &textureID)
 	//Free the allocated data
 	delete[] RGBdata;
 	delete[] textureFile;
+}
+
+void createUBO()
+{
+	//Create a Uniform Buffer Object(UBO)
+	//Create a buffer name
+	glGenBuffers(1, &UBO);
+	//Bind buffer to work further with it
+	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+	//Allocate memory for the buffer in the GPU
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(valuesFromCPUToGPU), NULL, GL_STATIC_DRAW);
+	//Because we hard-coded "Binding = 3" in the shader we can do this:
+	//Bind Uniform Buffer to binding point 3 (without caring about index of UBO)
+	glBindBufferBase(GL_UNIFORM_BUFFER, 3, UBO);
+	//Good practice , unbind buffer
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }

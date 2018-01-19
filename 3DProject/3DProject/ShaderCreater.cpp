@@ -1,6 +1,21 @@
 #include "ShaderCreater.h"
 
-ShaderCreater::ShaderCreater(std::string vertexShader, std::string geometryShader, std::string fragmentShader, GLuint shaderProgram)
+ShaderCreater::ShaderCreater()
+{
+
+}
+
+ShaderCreater::~ShaderCreater()
+{
+}
+
+
+GLuint ShaderCreater::getShaderProgramID()const
+{
+	return this->programID;
+}
+
+void ShaderCreater::createShaders(std::string vertexShader, std::string geometryShader, std::string fragmentShader)
 {
 	GLint success = 0;
 	char infoLog[512];
@@ -81,11 +96,11 @@ ShaderCreater::ShaderCreater(std::string vertexShader, std::string geometryShade
 	}
 
 	//Link shader-program (connect vs,(gs) and fs)
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vs);
-	glAttachShader(shaderProgram, gs);
-	glAttachShader(shaderProgram, fs);
-	glLinkProgram(shaderProgram);
+	this->programID = glCreateProgram();
+	glAttachShader(this->programID, vs);
+	glAttachShader(this->programID, gs);
+	glAttachShader(this->programID, fs);
+	glLinkProgram(this->programID);
 
 	////Create a Uniform Buffer Object(UBO)
 	////Create a buffer name
@@ -101,32 +116,20 @@ ShaderCreater::ShaderCreater(std::string vertexShader, std::string geometryShade
 	//glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	//Checks if the linking between the shaders works
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+	glGetProgramiv(this->programID, GL_LINK_STATUS, &success);
 	if (!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+		glGetProgramInfoLog(this->programID, 512, NULL, infoLog);
 		std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
 		system("PAUSE");
 		exit(-1);
 	}
 
-	this->programID = shaderProgram;
-
 	// in any case (compile sucess or not), we only want to keep the 
 	// Program around, not the shaders.
-	glDetachShader(shaderProgram, vs);
-	glDetachShader(shaderProgram, gs);
-	glDetachShader(shaderProgram, fs);
+	glDetachShader(this->programID, vs);
+	glDetachShader(this->programID, gs);
+	glDetachShader(this->programID, fs);
 	glDeleteShader(vs);
 	glDeleteShader(gs);
 	glDeleteShader(fs);
-}
-
-ShaderCreater::~ShaderCreater()
-{
-}
-
-
-GLuint ShaderCreater::getShaderProgramID()const
-{
-	return this->programID;
 }

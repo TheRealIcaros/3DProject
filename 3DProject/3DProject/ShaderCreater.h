@@ -13,13 +13,13 @@ class ShaderCreater
 {
 private:
 	GLuint programID;
-	GLuint UBO;
 
 public:
-	ShaderCreater(std::string vertexShader, std::string geometryShader, std::string fragmentShader, GLuint shaderProgram = 0);
+	ShaderCreater();
 	~ShaderCreater();
 
 	GLuint getShaderProgramID()const;
+	void createShaders(std::string vertexShader, std::string geometryShader, std::string fragmentShader);
 };
 
 
