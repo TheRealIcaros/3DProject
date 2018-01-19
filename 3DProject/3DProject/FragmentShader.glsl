@@ -15,8 +15,8 @@ void main()
 
 	float diffuse = clamp(dot(normal.xyz, lightDirection), 0, 1);	//The diffuse-component
 
-	FragColor  =  vec4(texture(texSampler, UV).rgb, 0.2);
+	//FragColor  =  vec4(texture(texSampler, UV).rgb, 0.2);
 	//vec4 mySample = vec4(texture(texSampler, UV).rgb, 0);
-	//FragColor = mySample * (ambientLight + diffuse);
+	FragColor = mySample * (ambientLight + diffuse);
 	//fragment_color = mySample * (ambientLight + diffuse);
 }

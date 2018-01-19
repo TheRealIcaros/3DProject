@@ -618,3 +618,28 @@ void createUBO()
 	//Good practice , unbind buffer
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
+
+
+
+/*While Loop
+
+0. calculate other things (dt, inputs, etc)
+	then render.	glClearColor(...);
+					glClear(... | ...);
+
+1. Geometry Pass: Render scene's geometry/color data into gBuffer
+	glm::mat4 projection = glm::perspective(FOV, aspectRatio, 0.1f, 20.0f);
+	glm::mat4 view = camera.getView();
+	glm::mat4 world;
+
+	shaderGeometryPass.use();
+	glGetUniformLocation(shaderGeometryPass.getID(), "vertex_position");
+	glUniform
+
+2. Lighting Pass: Calculate lighting by iterating over a screen filled quad pixel-by-pixel using the gbuffer's content.
+
+2.5 Copy content of geometry's depth buffer to default framebuffer's depth buffer
+
+3. Render lights on top of scene
+
+*/
