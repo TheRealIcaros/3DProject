@@ -106,3 +106,8 @@ glm::vec3 Camera::getUpVector()const
 {
 	return this->upVector;
 }
+
+glm::vec3 Camera::getPosition()const
+{
+	return this->cameraPosition;
+}

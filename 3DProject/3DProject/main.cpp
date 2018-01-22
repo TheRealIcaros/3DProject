@@ -26,9 +26,12 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 //void loadTexture(const char* texturePath, GLuint &textureID);
 GLuint loadBMPTexture(const char* texturePath, GLuint &textureID);
 void createUBO();
+void createGbuffer();
+void renderQuad();
 
 //Shader
-ShaderCreater defaultShader;
+ShaderCreater geometryPass;
+ShaderCreater lightingPass;
 
 //GLuint Variables
 //GLuint shaderProgram = 0;
@@ -40,6 +43,11 @@ GLuint UBO = 0;
 
 //Texture
 GLuint textureID;
+
+//gbuffer
+unsigned int gBuffer, gPosition, gNormal, gColorSpec;
+unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+
 
 //My Camera
 Camera camera;
@@ -124,11 +132,14 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 	//Create Shaders
-	defaultShader.createShaders("VertexShader", "GeometryShader", "FragmentShader");
-	//createShaders();
+	geometryPass.createShaders("VertexShader", "GeometryShader", "FragmentShader");
+	geometryPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
+
+	//Create gbuffers
+	createGbuffer();
 
 	//Create UBO
-	createUBO();
+	//createUBO();
 
 	//Set triangle-data
 	setTriangleData();
@@ -436,12 +447,12 @@ void setTriangleData()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //Adds the vertices-data to said buffer 
 
 
-	GLuint vertexPos = glGetAttribLocation(defaultShader.getShaderProgramID(), "vertexPosition");
+	GLuint vertexPos = glGetAttribLocation(geometryPass.getShaderProgramID(), "vertexPosition");
 
 	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	GLuint texture = glGetAttribLocation(defaultShader.getShaderProgramID(), "vertex_tex");
+	GLuint texture = glGetAttribLocation(geometryPass.getShaderProgramID(), "vertex_tex");
 	glVertexAttribPointer(texture, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	
 	glEnableVertexAttribArray(1);
@@ -489,31 +500,74 @@ void processInput(GLFWwindow *window)
 
 void Render()
 {
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	//glClear(GL_COLOR_BUFFER_BIT);
 
-	//This clears the depth-buffer
-	// use the color to clear the color buffer
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glUseProgram(defaultShader.getShaderProgramID());
-	
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, textureID);
 
-	glBindVertexArray(VAO);
+	//1. Geometry Pass
+	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//Adds a rotation to the World-matrix, making the object(Veritices spinn)
-	myBufferData.World = glm::rotate(myBufferData.World, ROTATION * time.deltaTime, glm::vec3(0, 1, 0));
-
-	//Update View buffer with Camera
 	myBufferData.View = camera.getView();
 
-	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-	//Update data (Constant Buffer)
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &myBufferData);
+	glUseProgram(geometryPass.getShaderProgramID());
+	glUniformMatrix4fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "View"), 1, GL_FALSE, &myBufferData.View[0][0]);
 
+	//glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &myBufferData);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
+	
+
+	
+
+	//
+	//2. Lighting Pass
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, gPosition);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, gNormal);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, gColorSpec);
+	// also send lighting relevant uniforms
+	glUseProgram(lightingPass.getShaderProgramID());
+	//	TODO:(Bind all gBufferTextures)
+	//	TODO:(Set lighting uniforms)
+	glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
+	renderQuad();
+
+
+
+
+
+	//glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	////glClear(GL_COLOR_BUFFER_BIT);
+
+	////This clears the depth-buffer
+	//// use the color to clear the color buffer
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	//glUseProgram(geometryPass.getShaderProgramID());
+	//
+	////glActiveTexture(GL_TEXTURE0);
+	////glBindTexture(GL_TEXTURE_2D, textureID);
+
+	//glBindVertexArray(VAO);
+
+	////Adds a rotation to the World-matrix, making the object(Veritices spinn)
+	////myBufferData.World = glm::rotate(myBufferData.World, ROTATION * time.deltaTime, glm::vec3(0, 1, 0));
+
+	////Update View buffer with Camera
+	//myBufferData.View = camera.getView();
+
+	//glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+	////Update data (Constant Buffer)
+	//glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &myBufferData);
+
+	//glDrawArrays(GL_TRIANGLES, 0, 36);
+
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -619,7 +673,72 @@ void createUBO()
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
+void createGbuffer()
+{
+	glGenFramebuffers(1, &gBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 
+	//position color buffer
+	glGenTextures(1, &gPosition);
+	glBindTexture(GL_TEXTURE_2D, gPosition);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
+
+	//normal color buffer
+	glGenTextures(1, &gNormal);
+	glBindTexture(GL_TEXTURE_2D, gNormal);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+
+	//color + specular color buffer
+
+	glGenTextures(1, &gColorSpec);
+	glBindTexture(GL_TEXTURE_2D, gColorSpec);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gColorSpec, 0);
+
+	//tell OPENGL which color vi ska använda (av denna framebuffer) for rendering på svenska
+	//TOP OF THE KOD
+	glDrawBuffers(3, attachments);
+	//add djupbufé 
+}
+
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderQuad()
+{
+	if (quadVAO == 0)
+	{
+		float quadVertices[] = {
+			// positions        // texture Coords
+			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+			1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+			1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		};
+
+		// Setup plane VAO
+		glGenVertexArrays(1, &quadVAO);
+		glGenBuffers(1, &quadVBO);
+		glBindVertexArray(quadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	}
+
+	glBindVertexArray(quadVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
+}
 
 /*While Loop
 

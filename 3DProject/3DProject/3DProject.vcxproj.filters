@@ -18,6 +18,8 @@
     <None Include="FragmentShader.glsl" />
     <None Include="GeometryShader.glsl" />
     <None Include="VertexShader.glsl" />
+    <None Include="LightingPassVS.glsl" />
+    <None Include="LightingPassFS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

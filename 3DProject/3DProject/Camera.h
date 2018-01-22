@@ -42,6 +42,7 @@ public:
 	float getSpeed()const;
 	glm::vec3 getLookAtVector()const;
 	glm::vec3 getUpVector()const;
+	glm::vec3 getPosition()const;
 };
 
 

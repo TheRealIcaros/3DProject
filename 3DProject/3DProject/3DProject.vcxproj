@@ -123,6 +123,8 @@
   <ItemGroup>
     <None Include="FragmentShader.glsl" />
     <None Include="GeometryShader.glsl" />
+    <None Include="LightingPassFS.glsl" />
+    <None Include="LightingPassVS.glsl" />
     <None Include="VertexShader.glsl" />
   </ItemGroup>
   <ItemGroup>

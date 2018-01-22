@@ -36,13 +36,13 @@ vec3 getNormal(vec3 Normal)
 
 in vec2 texOut[];
 out vec2 UV;
-out vec4 normal;
-out vec4 worldPosition;
+out vec3 Normal;
+out vec3 FragPos;
 
 void main()
 {
-	vec3 Normal;
-	Normal = getNormal(Normal);
+	vec3 normal;
+	normal = getNormal(normal);
 
 	for (int i = 0; i < gl_in.length(); i++)
 	{
@@ -51,9 +51,9 @@ void main()
 
 		//Normal = getNormal(Normal);
 
-		normal = World * vec4(Normal, 0.0);
+		Normal = (World * vec4(normal, 0.0)).xyz;
 
-		worldPosition = World * gl_in[i].gl_Position;
+		FragPos = (World * gl_in[i].gl_Position).xyz;
 
 		EmitVertex();
 	}
@@ -67,9 +67,9 @@ void main()
 
 		//Normal = getNormal(Normal);
 
-		normal = World * vec4(Normal, 0.0);
+		Normal = (World * vec4(normal, 0.0)).xyz;
 
-		worldPosition = World * gl_in[i].gl_Position + vec4(Normal, 1.0);
+		FragPos = (World * gl_in[i].gl_Position + vec4(normal, 1.0)).xyz;
 
 		EmitVertex();
 	}

@@ -46,28 +46,33 @@ void ShaderCreater::createShaders(std::string vertexShader, std::string geometry
 	}
 
 	//Geometry shader
-	GLuint gs = glCreateShader(GL_GEOMETRY_SHADER);
-	//Open glsl file and put it in a string
-	shaderFile.open(geometryShader + ".glsl");
-	shaderText.assign((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
-	shaderFile.close();
-	//Make a double pointer (only valid here)
-	shaderTextPtr = shaderText.c_str();
-	//Ask GL to load this
-	glShaderSource(gs, 1, &shaderTextPtr, nullptr);
-
-	//////Compile shader
-	glCompileShader(gs);
-
-	////Test if compilation of shader-file went ok
-	glGetShaderiv(gs, GL_COMPILE_STATUS, &success);
-	if (success == GL_FALSE)
+	GLuint gs = 0;
+	if (geometryShader != "NULL")
 	{
-		glGetShaderInfoLog(gs, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::GEOMETRY::COMPILATION_FAILED\n" << infoLog << std::endl;
-		system("PAUSE");
-		glDeleteShader(gs);
-		exit(-1);
+		//Geometry shader
+		gs = glCreateShader(GL_GEOMETRY_SHADER);
+		//Open glsl file and put it in a string
+		shaderFile.open(geometryShader + ".glsl");
+		shaderText.assign((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
+		shaderFile.close();
+		//Make a double pointer (only valid here)
+		shaderTextPtr = shaderText.c_str();
+		//Ask GL to load this
+		glShaderSource(gs, 1, &shaderTextPtr, nullptr);
+
+		//////Compile shader
+		glCompileShader(gs);
+
+		////Test if compilation of shader-file went ok
+		glGetShaderiv(gs, GL_COMPILE_STATUS, &success);
+		if (success == GL_FALSE)
+		{
+			glGetShaderInfoLog(gs, 512, NULL, infoLog);
+			std::cout << "ERROR::SHADER::GEOMETRY::COMPILATION_FAILED\n" << infoLog << std::endl;
+			system("PAUSE");
+			glDeleteShader(gs);
+			exit(-1);
+		}
 	}
 
 	//Fragment shader
@@ -98,7 +103,8 @@ void ShaderCreater::createShaders(std::string vertexShader, std::string geometry
 	//Link shader-program (connect vs,(gs) and fs)
 	this->programID = glCreateProgram();
 	glAttachShader(this->programID, vs);
-	glAttachShader(this->programID, gs);
+	if (geometryShader != "NULL")
+		glAttachShader(this->programID, gs);
 	glAttachShader(this->programID, fs);
 	glLinkProgram(this->programID);
 
@@ -127,9 +133,11 @@ void ShaderCreater::createShaders(std::string vertexShader, std::string geometry
 	// in any case (compile sucess or not), we only want to keep the 
 	// Program around, not the shaders.
 	glDetachShader(this->programID, vs);
-	glDetachShader(this->programID, gs);
+	if (geometryShader != "NULL")
+		glDetachShader(this->programID, gs);
 	glDetachShader(this->programID, fs);
 	glDeleteShader(vs);
-	glDeleteShader(gs);
+	if (geometryShader != "NULL")
+		glDeleteShader(gs);
 	glDeleteShader(fs);
 }
