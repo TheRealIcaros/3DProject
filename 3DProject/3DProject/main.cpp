@@ -133,13 +133,13 @@ int main()
 
 	//Create Shaders
 	geometryPass.createShaders("VertexShader", "GeometryShader", "FragmentShader");
-	geometryPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
+	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 
 	//Create gbuffers
-	createGbuffer();
+	createGbuffer(); 
 
 	//Create UBO
-	//createUBO();
+	createUBO();
 
 	//Set triangle-data
 	setTriangleData();
@@ -149,6 +149,9 @@ int main()
 
 	//Depth testing enabled
 	glEnable(GL_DEPTH_TEST);
+
+	/*glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);*/
 
 	//Render Loop
 	while (!glfwWindowShouldClose(window))
@@ -500,31 +503,28 @@ void processInput(GLFWwindow *window)
 
 void Render()
 {
-
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-	//1. Geometry Pass
+	////1. Geometry Pass
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	myBufferData.View = camera.getView();
-
 	glUseProgram(geometryPass.getShaderProgramID());
 	glUniformMatrix4fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "View"), 1, GL_FALSE, &myBufferData.View[0][0]);
 
-	//glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &myBufferData);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
+	//	
 	
-
-	
-
-	//
+	////
 	//2. Lighting Pass
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glUseProgram(lightingPass.getShaderProgramID());
+	//	Bind all gBufferTextures
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, gPosition);
 	glActiveTexture(GL_TEXTURE1);
@@ -532,12 +532,9 @@ void Render()
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, gColorSpec);
 	// also send lighting relevant uniforms
-	glUseProgram(lightingPass.getShaderProgramID());
-	//	TODO:(Bind all gBufferTextures)
 	//	TODO:(Set lighting uniforms)
 	glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
 	renderQuad();
-
 
 
 
@@ -567,7 +564,6 @@ void Render()
 	//glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &myBufferData);
 
 	//glDrawArrays(GL_TRIANGLES, 0, 36);
-
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -717,10 +713,12 @@ void renderQuad()
 	{
 		float quadVertices[] = {
 			// positions        // texture Coords
-			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-			1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-			1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+			-0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+			0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+			-0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
+			-0.5f,  0.5f, 0.0f, 1.0f, 0.0f,
+			0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
+			0.5f,  0.5f, 0.0f, 1.0f, 1.0f
 		};
 
 		// Setup plane VAO
@@ -736,7 +734,7 @@ void renderQuad()
 	}
 
 	glBindVertexArray(quadVAO);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
 }
 

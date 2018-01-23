@@ -7,6 +7,7 @@ uniform sampler2D texSampler;
 in vec2 UV;
 in vec3 Normal;
 in vec3 FragPos;
+out vec3 FragColor;
 
 void main()
 {
