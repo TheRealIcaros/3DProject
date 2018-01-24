@@ -15,7 +15,7 @@ struct Light {
 	float Radius;
 };
 
-vec3 lightPos = vec3(0, 0, 5);
+vec3 lightPos = vec3(0, 5, 5);
 uniform vec3 viewPos;
 
 void main()
@@ -41,13 +41,17 @@ void main()
 	float Specular = texture(gColorSpec, textureCoordinates).a;
 
 	// Calculate lighting as usual
-	vec3 lighting = Albedo * 0.1;
+	vec3 lighting = Albedo * 1.0;
 	vec3 viewDir = normalize(viewPos - FragPos);
 	
+	//lightPos = viewPos;
+	//Diffuse
 	vec3 lightDir = normalize(lightPos - FragPos);
 	vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Albedo;
+	// Specular TODO
+	
+	// Attenuation
 	lighting += diffuse;
 	
-	//FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-	FragColor = vec4(lighting, 1.0);
+	FragColor = vec4(Albedo, 1.0);
 }

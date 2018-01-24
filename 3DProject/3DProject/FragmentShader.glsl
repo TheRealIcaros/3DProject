@@ -21,8 +21,8 @@ void main()
 	//vec4 mySample = vec4(texture(texSampler, UV).rgb, 1);
 	//FragColor = mySample; // *(ambientLight + diffuse);
 
-	gPosition = FragPos.xyz;
+	gPosition = FragPos;
 	gNormal = normalize(Normal);
-	gColorSpec.rgb = texture(texSampler, UV).rgb;
+	gColorSpec.rgb = texture(texSampler, vec2(UV.s, UV.t)).rgb;
 	//gColorSpec.a = texture(texSampler, UV).r;
 }

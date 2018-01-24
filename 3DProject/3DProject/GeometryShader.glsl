@@ -48,7 +48,7 @@ void main()
 	{
 		gl_Position = (Projection * View * World) * gl_in[i].gl_Position;
 		UV = texOut[i];
-
+		
 		Normal = (World * vec4(normal, 0.0)).xyz;
 
 		FragPos = (World * gl_in[i].gl_Position).xyz;
@@ -57,7 +57,7 @@ void main()
 	}
 	EndPrimitive();
 
-	for (int i = 0; i < gl_in.length(); i++)
+	/*for (int i = 0; i < gl_in.length(); i++)
 	{
 		gl_Position = (Projection * View * World) * (gl_in[i].gl_Position + vec4(3.0, 0.0, 0.0, 0.0));
 		
@@ -69,5 +69,5 @@ void main()
 
 		EmitVertex();
 	}
-	EndPrimitive();
+	EndPrimitive();*/
 }
