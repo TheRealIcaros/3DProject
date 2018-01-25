@@ -1,6 +1,6 @@
 #version 430
 layout(triangles)in;
-layout(triangle_strip, max_vertices = 6) out;
+layout(triangle_strip, max_vertices = 3) out;
 
 layout(binding = 3, std140) uniform uniformBlock
 {
@@ -9,69 +9,73 @@ layout(binding = 3, std140) uniform uniformBlock
 	mat4 Projection;
 };
 
-vec3 getNormal(vec3 Normal)
+//vec3 getNormal(vec3 inNormal)
+//{
+//	//vec3 U = (gl_Position.[1].xyz - gl_Position.[0].xyz);
+//	//vec3 V = (gl_Position.[2].xyz - gl_Position.[1].xyz);
+//
+//	//Normal.x = (U.y * V.z) - (U.z * V.y);
+//	//Normal.y = (U.z * V.x) - (U.x * V.z);
+//	//Normal.z = (U.x - V.y) - (U.y - V.x);
+//	
+//	//Normal = normalize(Normal);
+//
+//	//return Normal;
+//
+//	vec3 U = (gl_in[1].gl_Position.xyz - gl_in[0].gl_Position.xyz);
+//	vec3 V = (gl_in[2].gl_Position.xyz - gl_in[1].gl_Position.xyz);
+//	//
+//	inNormal.x = (U.y * V.z) - (U.z * V.y);
+//	inNormal.y = (U.z * V.x) - (U.x * V.z);
+//	inNormal.z = (U.x - V.y) - (U.y - V.x);
+//	//
+//	inNormal = normalize(inNormal);
+//	//
+//	return inNormal;
+//}
+
+vec3 calculateNormal(vec3 pos0, vec3 pos1, vec3 pos2)
 {
-	//vec3 U = (gl_Position.[1].xyz - gl_Position.[0].xyz);
-	//vec3 V = (gl_Position.[2].xyz - gl_Position.[1].xyz);
+	vec3 edge0 = pos0 - pos1;
+	vec3 edge1 = pos2 - pos1;
 
-	//Normal.x = (U.y * V.z) - (U.z * V.y);
-	//Normal.y = (U.z * V.x) - (U.x * V.z);
-	//Normal.z = (U.x - V.y) - (U.y - V.x);
-	
-	//Normal = normalize(Normal);
-
-	//return Normal;
-
-	vec3 U = (gl_in[1].gl_Position.xyz - gl_in[0].gl_Position.xyz);
-	vec3 V = (gl_in[2].gl_Position.xyz - gl_in[1].gl_Position.xyz);
-	//
-	Normal.x = (U.y * V.z) - (U.z * V.y);
-	Normal.y = (U.z * V.x) - (U.x * V.z);
-	Normal.z = (U.x - V.y) - (U.y - V.x);
-	//
-	Normal = normalize(Normal);
-	//
-	return Normal;
+	return normalize(cross(edge0, edge1));;
 }
 
 in vec2 texOut[];
 out vec2 UV;
-out vec4 normal;
-out vec4 worldPosition;
+out vec3 Normal;
+out vec3 FragPos;
 
 void main()
 {
-	vec3 Normal;
-	Normal = getNormal(Normal);
+	vec3 normal = calculateNormal(gl_in[0].gl_Position.xyz, gl_in[1].gl_Position.xyz, gl_in[2].gl_Position.xyz);
+	//normal = getNormal(normal);
 
 	for (int i = 0; i < gl_in.length(); i++)
 	{
 		gl_Position = (Projection * View * World) * gl_in[i].gl_Position;
 		UV = texOut[i];
-
-		//Normal = getNormal(Normal);
-
-		normal = World * vec4(Normal, 0.0);
-
-		worldPosition = World * gl_in[i].gl_Position;
+		
+		Normal = (World * vec4(normal, 0.0)).xyz;
+		
+		FragPos = (World * gl_in[i].gl_Position).xyz;
 
 		EmitVertex();
 	}
 	EndPrimitive();
 
-	for (int i = 0; i < gl_in.length(); i++)
+	/*for (int i = 0; i < gl_in.length(); i++)
 	{
 		gl_Position = (Projection * View * World) * (gl_in[i].gl_Position + vec4(3.0, 0.0, 0.0, 0.0));
 		
 		UV = texOut[i];
 
-		//Normal = getNormal(Normal);
+		Normal = (World * vec4(normal, 0.0)).xyz;
 
-		normal = World * vec4(Normal, 0.0);
-
-		worldPosition = World * gl_in[i].gl_Position + vec4(Normal, 1.0);
+		FragPos = (World * gl_in[i].gl_Position + vec4(normal, 1.0)).xyz;
 
 		EmitVertex();
 	}
-	EndPrimitive();
+	EndPrimitive();*/
 }
