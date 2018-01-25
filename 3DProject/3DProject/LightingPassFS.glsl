@@ -15,7 +15,7 @@ struct Light {
 	float Radius;
 };
 
-vec3 lightPos = vec3(0, 5, 5);
+vec3 lightPos = vec3(500, 10000, 0);
 uniform vec3 viewPos;
 
 void main()
@@ -34,24 +34,29 @@ void main()
 	//FragColor = mySample * (ambientLight + diffuse);
 	//fragment_color = mySample * (ambientLight + diffuse);
 
+
 	// get data from g-buffer
 	vec3 FragPos = texture(gPosition, textureCoordinates).rgb;
 	vec3 Normal = texture(gNormal, textureCoordinates).rgb;
-	vec3 Albedo = texture(gColorSpec, textureCoordinates).rgb;
+	vec3 Color = texture(gColorSpec, textureCoordinates).rgb;
 	float Specular = texture(gColorSpec, textureCoordinates).a;
 
+	if (gl_FrontFacing)
+		Normal = -Normal;
+
+	// TODO: Add Multiple Lightsources
 	// Calculate lighting as usual
-	vec3 lighting = Albedo * 1.0;
+	vec3 lighting = Color * 0.5;
 	vec3 viewDir = normalize(viewPos - FragPos);
 	
 	//lightPos = viewPos;
 	//Diffuse
 	vec3 lightDir = normalize(lightPos - FragPos);
-	vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Albedo;
+	vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Color;
 	// Specular TODO
 	
 	// Attenuation
 	lighting += diffuse;
 	
-	FragColor = vec4(Albedo, 1.0);
+	FragColor = vec4(lighting, 1.0);
 }

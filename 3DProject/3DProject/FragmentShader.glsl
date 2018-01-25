@@ -23,6 +23,7 @@ void main()
 
 	gPosition = FragPos;
 	gNormal = normalize(Normal);
-	gColorSpec.rgb = texture(texSampler, vec2(UV.s, UV.t)).rgb;
+	gColorSpec.rgb = texture(texSampler, UV).rgb; //vec3(1.0, 1.0, 1.0);//t
 	//gColorSpec.a = texture(texSampler, UV).r;
+	//FragColor = texture(texSampler, UV).rgb;
 }
