@@ -36,6 +36,7 @@ ShaderCreater geometryPass;
 ShaderCreater lightingPass;
 
 //GLuint Variables
+//
 GLuint VBO = 0;
 GLuint VAO = 0;
 
