@@ -4,7 +4,8 @@
 #include "Defines.h"
 #include <vector>
 
-//Kaffe2
+#include <assimp\Importer.hpp>
+
 //Own Classes
 #include "ShaderCreater.h"
 
@@ -32,6 +33,7 @@ public:
 	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
 	~Mesh();
 
+	
 	vector<Vertex> vertices;
 	vector<unsigned int> indices;
 	vector<Texture> textures;
