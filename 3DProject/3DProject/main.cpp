@@ -3,16 +3,14 @@
 #include <stb_image.h> //For loading textures and images
 #include <stdio.h>
 
-#include <sstream>
-
 //Own classes
 #include "Camera.h"
 #include "ShaderCreater.h"
 
 //3D-math
-#include <glm.hpp>
-#include <gtc/matrix_transform.hpp>
-#include <gtc/type_ptr.hpp>
+//#include <glm.hpp>
+//#include <gtc/matrix_transform.hpp>
+//#include <gtc/type_ptr.hpp>
 
 void initiateGLFW();
 GLFWwindow *createWindow();
@@ -31,7 +29,7 @@ void createGbuffer();
 void renderQuad();
 void renderGeometryPass();
 void renderLightingPass();
-
+  
 //Shader
 ShaderCreater geometryPass;
 ShaderCreater lightingPass;

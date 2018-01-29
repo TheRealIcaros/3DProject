@@ -4,7 +4,6 @@
 #include <glad\glad.h>
 #include "Defines.h"
 #include <GLFW/glfw3.h>
-#include <iostream>
 #include <string>
 #include <fstream>
 

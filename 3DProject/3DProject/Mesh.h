@@ -2,14 +2,8 @@
 #define MESH_H
 
 #include "Defines.h"
-#include <iostream>
 #include <vector>
-#include <sstream>
 
-//3D-math
-#include <glm.hpp>
-#include <gtc/matrix_transform.hpp>
-#include <gtc/type_ptr.hpp>
 
 //Own Classes
 #include "ShaderCreater.h"
