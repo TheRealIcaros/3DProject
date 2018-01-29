@@ -4,7 +4,7 @@
 #include "Defines.h"
 #include <vector>
 
-//Kaffe
+//Kaffe2
 //Own Classes
 #include "ShaderCreater.h"
 
