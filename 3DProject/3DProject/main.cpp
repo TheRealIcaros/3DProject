@@ -2,6 +2,7 @@
 #include <crtdbg.h>
 #include <stb_image.h> //For loading textures and images
 #include <stdio.h>
+
 #include <sstream>
 
 //Own classes

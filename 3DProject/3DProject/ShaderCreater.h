@@ -8,7 +8,6 @@
 #include <string>
 #include <fstream>
 
-
 class ShaderCreater
 {
 private:
@@ -20,6 +19,7 @@ public:
 
 	GLuint getShaderProgramID()const;
 	void createShaders(std::string vertexShader, std::string geometryShader, std::string fragmentShader);
+	void setFloat(std::string name, int value) const;
 };
 
 
