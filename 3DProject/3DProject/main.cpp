@@ -1,11 +1,12 @@
 #include <glad\glad.h>
 #include <crtdbg.h>
-#include <stb_image.h> //For loading textures and images
+//#include <stb_image.h> //For loading textures and images
 #include <stdio.h>
 
 //Own classes
 #include "Camera.h"
 #include "ShaderCreater.h"
+#include "Model.h"
 
 //3D-math
 //#include <glm.hpp>
@@ -23,7 +24,7 @@ void setTriangleData();
 void Render();
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 //void loadTexture(const char* texturePath, GLuint &textureID);
-GLuint loadBMPTexture(const char* texturePath, GLuint &textureID);
+//GLuint loadBMPTexture(const char* texturePath, GLuint &textureID);
 void createUBO();
 void createGbuffer();
 void renderQuad();
@@ -34,8 +35,10 @@ void renderLightingPass();
 ShaderCreater geometryPass;
 ShaderCreater lightingPass;
 
+//Model
+Model box;
+
 //GLuint Variables
-//
 GLuint VBO = 0;
 GLuint VAO = 0;
 
@@ -48,6 +51,7 @@ GLuint UBO = 0;
 
 //Texture
 GLuint textureID;
+GLuint textureID2;
 
 //gbuffer
 unsigned int gBuffer, gPosition, gNormal, gColorSpec;
@@ -146,7 +150,8 @@ int main()
 	createUBO();
 
 	//Set triangle-data
-	setTriangleData();
+	//setTriangleData();
+	box = Model("../Models/Nanosuit/nanosuit.obj");
 
 	//Cursor Disabled/non-visible
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -359,90 +364,6 @@ void setTriangleData()
 {
 	float vertices[] = 
 	{ 
-		/*-0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f, 
-		 0.5f,  0.5f, -0.5f, 
-		 0.5f,  0.5f, -0.5f, 
-		-0.5f,  0.5f, -0.5f, 
-		-0.5f, -0.5f, -0.5f, 
-
-		-0.5f, -0.5f,  0.5f, 
-		 0.5f, -0.5f,  0.5f, 
-		 0.5f,  0.5f,  0.5f, 
-		 0.5f,  0.5f,  0.5f, 
-		-0.5f,  0.5f,  0.5f, 
-		-0.5f, -0.5f,  0.5f, 
-
-		-0.5f,  0.5f,  0.5f, 
-		-0.5f,  0.5f, -0.5f, 
-		-0.5f, -0.5f, -0.5f, 
-		-0.5f, -0.5f, -0.5f, 
-		-0.5f, -0.5f,  0.5f, 
-		-0.5f,  0.5f,  0.5f, 
-
-		 0.5f,  0.5f,  0.5f, 
-		 0.5f,  0.5f, -0.5f, 
-		 0.5f, -0.5f, -0.5f, 
-		 0.5f, -0.5f, -0.5f, 
-		 0.5f, -0.5f,  0.5f, 
-		 0.5f,  0.5f,  0.5f,
-
-		-0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f, 
-		 0.5f, -0.5f,  0.5f, 
-		 0.5f, -0.5f,  0.5f, 
-		-0.5f, -0.5f,  0.5f, 
-		-0.5f, -0.5f, -0.5f,
-
-		-0.5f,  0.5f, -0.5f,
-		 0.5f,  0.5f, -0.5f,
-		 0.5f,  0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f, -0.5f*/
-
-		 /*-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f*/
-
 		//Back Face
 		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
 		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -516,7 +437,8 @@ void setTriangleData()
 	glBindVertexArray(0);
 
 	//loadTexture("../Textures/durkplat.bmp", textureID);
-	loadBMPTexture("../Textures/durkplat.bmp", textureID);
+	//loadBMPTexture("../Textures/durkplat.bmp", textureID);
+	//loadBMPTexture("../Textures/ball.bmp", textureID2);
 }
 
 void processInput(GLFWwindow *window)
@@ -591,68 +513,68 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 //	unsigned char* data = stbi_load(texturePath, &width, &height, &nrChannels, 0);
 //}
 
-GLuint loadBMPTexture(const char* texturePath, GLuint &textureID)
-{
-	unsigned char header[54]; //All textures will begin with 54-bytes header
-	unsigned int dataPos;	//The position in the file where  the actual data begins
-	unsigned int width;
-	unsigned int height;
-	unsigned int textureSize; // = width * height * 3
-	//Actual RGB-data
-	unsigned char* RGBdata;
-
-	FILE ** textureFile =  new FILE*(); 
-	fopen_s(textureFile, texturePath, "rb");
-	if (!textureFile) //If texture didn't load
-	{
-		cout << "Image could not be opened\n" << endl;
-		return 0;
-	}
-
-	if (fread(header, 1, 54, *textureFile) != 54)//If header is not 54-bytes
-	{
-		cout << "Not a correct BMP-file" << endl;
-		return 0;
-	}
-
-	if (header[0] != 'B' || header[1] != 'M')
-	{
-		cout << "Not a correct BMP-file" << endl;
-		return 0;
-	}
-
-	dataPos = *(int*)&(header[0x0A]);
-	textureSize = *(int*)&(header[0x22]);
-	width = *(int*)&(header[0x12]);
-	height = *(int*)&(header[0x16]);
-
-	if (textureSize == 0)//If the BMP-file is misformatted
-		textureSize = width * height * 3;
-
-	if (dataPos == 0)
-		dataPos = 54;
-
-	RGBdata = new unsigned char[textureSize];
-
-	fread(RGBdata, 1, textureSize, *textureFile);
-
-	fclose(*textureFile);
-
-	
-	glGenTextures(1, &textureID);
-
-	glBindTexture(GL_TEXTURE_2D, textureID);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, RGBdata);
-	
-	//Free the allocated data
-	delete[] RGBdata;
-	delete[] textureFile;
-}
+//GLuint loadBMPTexture(const char* texturePath, GLuint &textureID)
+//{
+//	unsigned char header[54]; //All textures will begin with 54-bytes header
+//	unsigned int dataPos;	//The position in the file where  the actual data begins
+//	unsigned int width;
+//	unsigned int height;
+//	unsigned int textureSize; // = width * height * 3
+//	//Actual RGB-data
+//	unsigned char* RGBdata;
+//
+//	FILE ** textureFile =  new FILE*(); 
+//	fopen_s(textureFile, texturePath, "rb");
+//	if (!textureFile) //If texture didn't load
+//	{
+//		cout << "Image could not be opened\n" << endl;
+//		return 0;
+//	}
+//
+//	if (fread(header, 1, 54, *textureFile) != 54)//If header is not 54-bytes
+//	{
+//		cout << "Not a correct BMP-file" << endl;
+//		return 0;
+//	}
+//
+//	if (header[0] != 'B' || header[1] != 'M')
+//	{
+//		cout << "Not a correct BMP-file" << endl;
+//		return 0;
+//	}
+//
+//	dataPos = *(int*)&(header[0x0A]);
+//	textureSize = *(int*)&(header[0x22]);
+//	width = *(int*)&(header[0x12]);
+//	height = *(int*)&(header[0x16]);
+//
+//	if (textureSize == 0)//If the BMP-file is misformatted
+//		textureSize = width * height * 3;
+//
+//	if (dataPos == 0)
+//		dataPos = 54;
+//
+//	RGBdata = new unsigned char[textureSize];
+//
+//	fread(RGBdata, 1, textureSize, *textureFile);
+//
+//	fclose(*textureFile);
+//
+//	
+//	glGenTextures(1, &textureID);
+//
+//	glBindTexture(GL_TEXTURE_2D, textureID);
+//
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, RGBdata);
+//	
+//	//Free the allocated data
+//	delete[] RGBdata;
+//	delete[] textureFile;
+//}
 
 void createUBO()
 {
@@ -752,6 +674,11 @@ void renderGeometryPass()
 	glUniform1i(glGetUniformLocation(geometryPass.getShaderProgramID(), "texSampler"), 0);
 	glBindTexture(GL_TEXTURE_2D, textureID);
 
+	//Bind BoxTexture
+	/*glActiveTexture(GL_TEXTURE1);
+	glUniform1i(glGetUniformLocation(geometryPass.getShaderProgramID(), "texSampler1"), 1);
+	glBindTexture(GL_TEXTURE_2D, textureID2);*/
+
 	glUniformMatrix4fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "View"), 1, GL_FALSE, &gpuBufferData.View[0][0]);
 
 	//Bind UBO for sending GPU data to GeometryPass Program
@@ -759,8 +686,11 @@ void renderGeometryPass()
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
 
 	//Bind and Render Vertices
-	glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+	/*glBindVertexArray(VAO);
+	glDrawArrays(GL_TRIANGLES, 0, 36);*/
+
+	box.Draw(geometryPass);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 

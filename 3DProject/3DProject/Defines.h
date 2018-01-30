@@ -15,5 +15,6 @@
 #define ROTATION -1.0f
 #define WIDTH 800
 #define HEIGHT 600
+#define STB_IMAGE_IMPLEMENTATION
 
 #endif

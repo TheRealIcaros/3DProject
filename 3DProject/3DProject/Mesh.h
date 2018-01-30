@@ -3,7 +3,6 @@
 
 #include "Defines.h"
 #include <vector>
-
 #include <assimp\Importer.hpp>
 
 //Own Classes
@@ -16,12 +15,15 @@ struct Vertex
 	glm::vec3 Position;
 	glm::vec3 Normal;
 	glm::vec2 TexCoords;
+	glm::vec3 Tangent;
+	glm::vec3 Bitangent;
 };
 
 struct Texture
 {
 	unsigned int id;
 	string type;
+	string path;
 };
 
 class Mesh
@@ -33,7 +35,6 @@ public:
 	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
 	~Mesh();
 
-	
 	vector<Vertex> vertices;
 	vector<unsigned int> indices;
 	vector<Texture> textures;
