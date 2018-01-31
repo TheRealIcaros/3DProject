@@ -15,6 +15,9 @@ private:
 	vector<Mesh> meshes;
 	string directory;
 	vector<Texture> textures_loaded;
+
+	glm::vec3 modelPosition;
+	
 	/*	Funcitons  */
 	void loadModel(string path);
 	void processNode(aiNode * node, const aiScene *scene);
@@ -23,9 +26,10 @@ private:
 	unsigned int TextureFromFile(const char *path, const string &directory);
 public:
 	Model();
-	Model(char *path);
+	Model(char *path, glm::vec3 startPosition = { 0.0, 0.0, 0.0 });
 	~Model();
 	void Draw(ShaderCreater shader);
+	glm::vec3 getModelPosition()const;
 };
 
 #endif // !MODEL_H

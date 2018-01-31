@@ -7,6 +7,7 @@
 #include "Camera.h"
 #include "ShaderCreater.h"
 #include "Model.h"
+#include "Defines.h"
 
 //3D-math
 //#include <glm.hpp>
@@ -36,6 +37,7 @@ ShaderCreater geometryPass;
 ShaderCreater lightingPass;
 
 //Model
+Model monkey;
 Model box;
 
 //GLuint Variables
@@ -151,7 +153,8 @@ int main()
 
 	//Set triangle-data
 	//setTriangleData();
-	box = Model("../Models/Nanosuit/nanosuit.obj");
+	monkey = Model("../Models/Monkey/Monkey.obj", glm::vec3(2.0, 0.0, 0.0));
+	box = Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 0.0));
 
 	//Cursor Disabled/non-visible
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -159,8 +162,8 @@ int main()
 	//Depth testing enabled
 	glEnable(GL_DEPTH_TEST);
 
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
 
 	//Render Loop
 	while (!glfwWindowShouldClose(window))
@@ -670,11 +673,11 @@ void renderGeometryPass()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//Bind BoxTexture
-	glActiveTexture(GL_TEXTURE0);
+	/*glActiveTexture(GL_TEXTURE0);
 	glUniform1i(glGetUniformLocation(geometryPass.getShaderProgramID(), "texSampler"), 0);
-	glBindTexture(GL_TEXTURE_2D, textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);*/
 
-	//Bind BoxTexture
+	//Mix Texture
 	/*glActiveTexture(GL_TEXTURE1);
 	glUniform1i(glGetUniformLocation(geometryPass.getShaderProgramID(), "texSampler1"), 1);
 	glBindTexture(GL_TEXTURE_2D, textureID2);*/
@@ -688,7 +691,8 @@ void renderGeometryPass()
 	//Bind and Render Vertices
 	/*glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 36);*/
-
+	
+	monkey.Draw(geometryPass);
 	box.Draw(geometryPass);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

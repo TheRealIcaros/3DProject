@@ -33,8 +33,7 @@ void main()
 	//vec4 mySample = vec4(texture(texSampler, UV).rgb, 0);
 	//FragColor = mySample * (ambientLight + diffuse);
 	//fragment_color = mySample * (ambientLight + diffuse);
-
-
+	
 	// get data from g-buffer
 	vec3 FragPos = texture(gPosition, textureCoordinates).rgb;
 	vec3 Normal = texture(gNormal, textureCoordinates).rgb;

@@ -6,8 +6,9 @@ Model::Model()
 
 }
 
-Model::Model(char *path)
+Model::Model(char *path, glm::vec3 startPosition)
 {
+	this->modelPosition = startPosition;
 	loadModel(path);
 }
 
@@ -26,12 +27,12 @@ void Model::Draw(ShaderCreater shader)
 
 void Model::loadModel(string path)
 {
-	Assimp::Importer import;
-	const aiScene *scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+	Assimp::Importer importer;
+	const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
-		cout << "ERROR::ASSIMP::" << import.GetErrorString() << endl;
+		cout << "ERROR::ASSIMP::" << importer.GetErrorString() << endl;
 		return;
 	}
 	directory = path.substr(0, path.find_last_of('/'));
@@ -69,7 +70,7 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene *scene)
 		vector.x = mesh->mVertices[i].x;
 		vector.y = mesh->mVertices[i].y;
 		vector.z = mesh->mVertices[i].z;
-		vertex.Position = vector;
+		vertex.Position = vector + this->modelPosition;
 		// normals
 		vector.x = mesh->mNormals[i].x;
 		vector.y = mesh->mNormals[i].y;
@@ -99,15 +100,22 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene *scene)
 		vertices.push_back(vertex);
 	}
 
+	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+	{
+		aiFace face = mesh->mFaces[i];
+		for (unsigned int j = 0; j < face.mNumIndices; j++)
+			indices.push_back(face.mIndices[j]);
+	}
+
 	if (mesh->mMaterialIndex >= 0)
 	{
 		aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
+
 		vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
-
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-		vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
 
-		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+		/*vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());*/
 	}
 
 	return Mesh(vertices, indices, textures);
@@ -183,3 +191,7 @@ unsigned int Model::TextureFromFile(const char *path, const string &directory)
 	return textureID;
 }
 
+glm::vec3 Model::getModelPosition()const
+{
+	return this->modelPosition;
+}

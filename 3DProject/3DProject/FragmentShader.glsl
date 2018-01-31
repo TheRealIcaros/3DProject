@@ -3,8 +3,7 @@ layout(location = 0) out vec3 gPosition;
 layout(location = 1) out vec3 gNormal;
 layout(location = 2) out vec4 gColorSpec;
 
-uniform sampler2D texSampler;
-uniform sampler2D texSampler1;
+uniform sampler2D texture_diffuse1;
 in vec2 UV;
 in vec3 Normal;
 in vec3 FragPos;
@@ -25,7 +24,7 @@ void main()
 	gPosition = FragPos;
 	gNormal = normalize(Normal);
 	//gColorSpec.rgb = mix(texture(texSampler, UV), texture(texSampler1, UV), 0.5).rgb;
-	gColorSpec.rgb = texture(texSampler, UV).rgb; //vec3(1.0, 1.0, 1.0);//t
+	gColorSpec.rgb = texture(texture_diffuse1, UV).rgb; //vec3(1.0, 1.0, 1.0);//t
 	//gColorSpec.a = 0.2f;//texture(texSampler, UV).r;
 	//FragColor = texture(texSampler, UV).rgb;
 }
