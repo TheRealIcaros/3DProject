@@ -36,6 +36,15 @@ void renderLightingPass();
 ShaderCreater geometryPass;
 ShaderCreater lightingPass;
 
+//Lights
+struct Light
+{
+	glm::vec3 lightPos;
+	glm::vec3 lightColor;
+};
+
+vector<Light> lights;
+
 //Model
 Model monkey;
 Model box;
@@ -142,7 +151,7 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 	//Create Shaders
-	geometryPass.createShaders("VertexShader", "GeometryShader", "FragmentShader");
+	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 
 	//Create gbuffers
@@ -153,7 +162,7 @@ int main()
 
 	//Set triangle-data
 	//setTriangleData();
-	monkey = Model("../Models/Monkey/Monkey.obj", glm::vec3(2.0, 0.0, 0.0));
+	monkey = Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0));
 	box = Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 0.0));
 
 	//Cursor Disabled/non-visible
@@ -242,126 +251,6 @@ void calculateDeltaTime()
 		time.duration = 0.0f;
 	}
 }
-
-//void createShaders()
-//{
-	////These variables handles error messages
-	//GLint success = 0;
-	//char infoLog[512];
-	//
-	////Vertex shader
-	//GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-	////Open glsl file and put it in a string
-	//ifstream shaderFile("VertexShader.glsl");
-	//std::string shaderText((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
-	//shaderFile.close();
-	////Make a double pointer (only valid here)
-	//const char* shaderTextPtr = shaderText.c_str();
-	////Ask GL to load this
-	//glShaderSource(vs, 1, &shaderTextPtr, nullptr);
-	//
-	////Compile shader
-	//glCompileShader(vs);
-	//
-	////Test if compilation of shader-file went ok
-	//glGetShaderiv(vs, GL_COMPILE_STATUS, &success);
-	//if (success == GL_FALSE)
-	//{
-	//	glGetShaderInfoLog(vs, 512, NULL, infoLog);
-	//	std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	//	system("PAUSE");
-	//	glDeleteShader(vs);
-	//	exit(-1);
-	//}
-	//
-	////Geometry shader
-	//GLuint gs = glCreateShader(GL_GEOMETRY_SHADER);
-	////Open glsl file and put it in a string
-	//shaderFile.open("GeometryShader.glsl");
-	//shaderText.assign((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
-	//shaderFile.close();
-	////Make a double pointer (only valid here)
-	//shaderTextPtr = shaderText.c_str();
-	////Ask GL to load this
-	//glShaderSource(gs, 1, &shaderTextPtr, nullptr);
-	//
-	////////Compile shader
-	//glCompileShader(gs);
-	//
-	//////Test if compilation of shader-file went ok
-	//glGetShaderiv(gs, GL_COMPILE_STATUS, &success);
-	//if (success == GL_FALSE)
-	//{
-	//	glGetShaderInfoLog(gs, 512, NULL, infoLog);
-	//	std::cout << "ERROR::SHADER::GEOMETRY::COMPILATION_FAILED\n" << infoLog << std::endl;
-	//	system("PAUSE");
-	//	glDeleteShader(gs);
-	//	exit(-1);
-	//}
-	//
-	////Fragment shader
-	//GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-	////Open glsl file and put it in a string
-	//shaderFile.open("FragmentShader.glsl");
-	//shaderText.assign((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
-	//shaderFile.close();
-	////Make a double pointer (only valid here)
-	//shaderTextPtr = shaderText.c_str();
-	////Ask GL to load this
-	//glShaderSource(fs, 1, &shaderTextPtr, nullptr);
-	//
-	////Compile shader
-	//glCompileShader(fs);
-	//
-	////Test if compilation of shader-file went ok
-	//glGetShaderiv(fs, GL_COMPILE_STATUS, &success);
-	//if (success == GL_FALSE)
-	//{
-	//	glGetShaderInfoLog(fs, 512, NULL, infoLog);
-	//	std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-	//	system("PAUSE");
-	//	glDeleteShader(fs);
-	//	exit(-1);
-	//}
-	//
-	////Link shader-program (connect vs,(gs) and fs)
-	//shaderProgram = glCreateProgram();
-	//glAttachShader(shaderProgram, vs);
-	//glAttachShader(shaderProgram, gs);
-	//glAttachShader(shaderProgram, fs);
-	//glLinkProgram(shaderProgram);
-	//
-	////Create a Uniform Buffer Object(UBO)
-	////Create a buffer name
-	//glGenBuffers(1, &UBO);
-	////Bind buffer to work further with it
-	//glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-	////Allocate memory for the buffer in the GPU
-	//glBufferData(GL_UNIFORM_BUFFER, sizeof(valuesFromCPUToGPU), NULL, GL_STATIC_DRAW);
-	////Because we hard-coded "Binding = 3" in the shader we can do this:
-	////Bind Uniform Buffer to binding point 3 (without caring about index of UBO)
-	//glBindBufferBase(GL_UNIFORM_BUFFER, 3, UBO);
-	////Good practice , unbind buffer
-	//glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	//
-	////Checks if the linking between the shaders works
-	//glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	//if (!success) {
-	//	glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-	//	std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
-	//	system("PAUSE");
-	//	exit(-1);
-	//}
-	//
-	//// in any case (compile sucess or not), we only want to keep the 
-	//// Program around, not the shaders.
-	//glDetachShader(shaderProgram, vs);
-	//glDetachShader(shaderProgram, gs);
-	//glDetachShader(shaderProgram, fs);
-	//glDeleteShader(vs);
-	//glDeleteShader(gs);
-	//glDeleteShader(fs);
-//}
 
 void setTriangleData()
 {
@@ -509,76 +398,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	camera.mouseMovement(xoffset, yoffset);
 }
 
-//void loadTexture(const char* texturePath, GLuint &textureID)
-//{
-//	GLint width, height, nrChannels;	//The width, height and number of color channels
-//
-//	unsigned char* data = stbi_load(texturePath, &width, &height, &nrChannels, 0);
-//}
-
-//GLuint loadBMPTexture(const char* texturePath, GLuint &textureID)
-//{
-//	unsigned char header[54]; //All textures will begin with 54-bytes header
-//	unsigned int dataPos;	//The position in the file where  the actual data begins
-//	unsigned int width;
-//	unsigned int height;
-//	unsigned int textureSize; // = width * height * 3
-//	//Actual RGB-data
-//	unsigned char* RGBdata;
-//
-//	FILE ** textureFile =  new FILE*(); 
-//	fopen_s(textureFile, texturePath, "rb");
-//	if (!textureFile) //If texture didn't load
-//	{
-//		cout << "Image could not be opened\n" << endl;
-//		return 0;
-//	}
-//
-//	if (fread(header, 1, 54, *textureFile) != 54)//If header is not 54-bytes
-//	{
-//		cout << "Not a correct BMP-file" << endl;
-//		return 0;
-//	}
-//
-//	if (header[0] != 'B' || header[1] != 'M')
-//	{
-//		cout << "Not a correct BMP-file" << endl;
-//		return 0;
-//	}
-//
-//	dataPos = *(int*)&(header[0x0A]);
-//	textureSize = *(int*)&(header[0x22]);
-//	width = *(int*)&(header[0x12]);
-//	height = *(int*)&(header[0x16]);
-//
-//	if (textureSize == 0)//If the BMP-file is misformatted
-//		textureSize = width * height * 3;
-//
-//	if (dataPos == 0)
-//		dataPos = 54;
-//
-//	RGBdata = new unsigned char[textureSize];
-//
-//	fread(RGBdata, 1, textureSize, *textureFile);
-//
-//	fclose(*textureFile);
-//
-//	
-//	glGenTextures(1, &textureID);
-//
-//	glBindTexture(GL_TEXTURE_2D, textureID);
-//
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, RGBdata);
-//	
-//	//Free the allocated data
-//	delete[] RGBdata;
-//	delete[] textureFile;
-//}
-
 void createUBO()
 {
 	//Create a Uniform Buffer Object(UBO)
@@ -672,26 +491,12 @@ void renderGeometryPass()
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//Bind BoxTexture
-	/*glActiveTexture(GL_TEXTURE0);
-	glUniform1i(glGetUniformLocation(geometryPass.getShaderProgramID(), "texSampler"), 0);
-	glBindTexture(GL_TEXTURE_2D, textureID);*/
-
-	//Mix Texture
-	/*glActiveTexture(GL_TEXTURE1);
-	glUniform1i(glGetUniformLocation(geometryPass.getShaderProgramID(), "texSampler1"), 1);
-	glBindTexture(GL_TEXTURE_2D, textureID2);*/
-
 	glUniformMatrix4fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "View"), 1, GL_FALSE, &gpuBufferData.View[0][0]);
 
 	//Bind UBO for sending GPU data to GeometryPass Program
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
-
-	//Bind and Render Vertices
-	/*glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLES, 0, 36);*/
-	
+		
 	monkey.Draw(geometryPass);
 	box.Draw(geometryPass);
 

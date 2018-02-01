@@ -4,10 +4,9 @@ layout(location = 1) out vec3 gNormal;
 layout(location = 2) out vec4 gColorSpec;
 
 uniform sampler2D texture_diffuse1;
-in vec2 UV;
-in vec3 Normal;
 in vec3 FragPos;
-out vec3 FragColor;
+in vec3 FragNormal;
+in vec2 UV;
 
 void main()
 {
@@ -22,9 +21,6 @@ void main()
 	//FragColor = mySample; // *(ambientLight + diffuse);
 
 	gPosition = FragPos;
-	gNormal = normalize(Normal);
-	//gColorSpec.rgb = mix(texture(texSampler, UV), texture(texSampler1, UV), 0.5).rgb;
-	gColorSpec.rgb = texture(texture_diffuse1, UV).rgb; //vec3(1.0, 1.0, 1.0);//t
-	//gColorSpec.a = 0.2f;//texture(texSampler, UV).r;
-	//FragColor = texture(texSampler, UV).rgb;
+	gNormal = normalize(FragNormal);
+	gColorSpec.rgb = texture(texture_diffuse1, UV).rgb;
 }

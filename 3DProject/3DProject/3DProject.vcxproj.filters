@@ -13,13 +13,29 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="#Unused">
+      <UniqueIdentifier>{24629750-ffd5-4705-bad8-0be862729147}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{da5af853-f8b6-4a71-bf24-78a15074f14f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="FragmentShader.glsl" />
-    <None Include="GeometryShader.glsl" />
-    <None Include="VertexShader.glsl" />
-    <None Include="LightingPassVS.glsl" />
-    <None Include="LightingPassFS.glsl" />
+    <None Include="LightingPassVS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="LightingPassFS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="GeometryShader.glsl">
+      <Filter>#Unused</Filter>
+    </None>
+    <None Include="GeometryPassVS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="GeometryPassFS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

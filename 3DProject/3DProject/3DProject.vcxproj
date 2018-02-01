@@ -123,11 +123,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="FragmentShader.glsl" />
-    <None Include="GeometryShader.glsl" />
+    <None Include="GeometryPassFS.glsl" />
+    <None Include="GeometryShader.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
     <None Include="LightingPassFS.glsl" />
     <None Include="LightingPassVS.glsl" />
-    <None Include="VertexShader.glsl" />
+    <None Include="GeometryPassVS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Include\glad\src\glad.c" />
