@@ -11,8 +11,9 @@ struct Light {
 	vec3 Color;
 };
 
-vec3 lightPos = vec3(0, 5, 0);
-
+uniform int nrOfLights;
+const int lightNr = 16;		//Maximum of 16 lights in light vector array in CPU!!!
+uniform Light lights[lightNr];
 uniform vec3 viewPos;
 
 void main()
@@ -22,23 +23,31 @@ void main()
 	vec3 Normal = texture(gNormal, textureCoordinates).rgb;
 	vec3 Color = texture(gColorSpec, textureCoordinates).rgb;
 
-	vec3 viewDir = normalize(viewPos - FragPos);
-	vec3 lightDir = -normalize(lightPos - FragPos);
-	vec3 reflectDir = reflect(lightDir, Normal);
-
 	//Ambient Light
-	float ambient = 0.2f;
+	float ambient = 0.2;
 
-	//Diffuse Light
-	float diffuse = max(dot(Normal, -lightDir), 0.0);
+	//Variables
+	vec3 viewDir = normalize(viewPos - FragPos);
+	vec3 lightDir;
+	vec3 reflectDir;
+	vec3 result = ambient * Color;
+	
+	for (int i = 0; i < nrOfLights; i++)
+	{
+		lightDir = -normalize(lights[i].Position - FragPos);
+		reflectDir = reflect(lightDir, Normal);
 
-	//Specular Light
-	float specularStrength = 5.0f;
-	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 64);
-	float specular = spec * specularStrength;
+		//Diffuse Light
+		vec3 diffuse = max(dot(Normal, -lightDir), 0.0) * Color * lights[i].Color;
 
-	//Result
-	vec3 result = (ambient + diffuse + specular) * Color;
+		//Specular Light
+		float specularStrength = 0.5f;
+		float spec = pow(max(dot(viewDir, reflectDir), 0.0), 64);
+		vec3 specular = spec * specularStrength * lights[i].Color;
+
+		//Result
+		result += diffuse + specular;
+	}
 
 	//FragOut
 	FragColor = vec4(result, 1.0);

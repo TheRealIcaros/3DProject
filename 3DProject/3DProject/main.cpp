@@ -39,6 +39,12 @@ ShaderCreater lightingPass;
 //Lights
 struct Light
 {
+	Light(glm::vec3 pos, glm::vec3 color)
+	{
+		lightPos = pos;
+		lightColor = color;
+	}
+
 	glm::vec3 lightPos;
 	glm::vec3 lightColor;
 };
@@ -46,8 +52,7 @@ struct Light
 vector<Light> lights;
 
 //Model
-Model monkey;
-Model box;
+vector<Model> models;
 
 //GLuint Variables
 GLuint VBO = 0;
@@ -162,8 +167,15 @@ int main()
 
 	//Set triangle-data
 	//setTriangleData();
-	monkey = Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0));
-	box = Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 0.0));
+
+	//Add lights
+	lights.push_back(Light(glm::vec3(0.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 1.0)));
+	lights.push_back(Light(glm::vec3(0.0, 0.0, 5.0), glm::vec3(0.0, 1.0, 0.0)));
+	lights.push_back(Light(glm::vec3(5.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0)));
+
+	//Add Models
+	models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));
+	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 0.0)));
 
 	//Cursor Disabled/non-visible
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -497,8 +509,10 @@ void renderGeometryPass()
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
 		
-	monkey.Draw(geometryPass);
-	box.Draw(geometryPass);
+	for (int i = 0; i < models.size(); i++)
+	{
+		models[i].Draw(geometryPass);
+	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -524,6 +538,16 @@ void renderLightingPass()
 	glBindTexture(GL_TEXTURE_2D, gColorSpec);
 
 	//	TODO:(Fix multiple lights and send it to LightingPassFS)
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "nrOfLights"), lights.size());
+	for (int i = 0; i < lights.size(); i++)
+	{
+		string lightPos = "lights[" + std::to_string(i) + "].Position";
+		string lightColor = "lights[" + std::to_string(i) + "].Color";
+
+		glUniform3fv(glGetUniformLocation(lightingPass.getShaderProgramID(), lightPos.c_str()), 1, &lights[i].lightPos[0]);
+		glUniform3fv(glGetUniformLocation(lightingPass.getShaderProgramID(), lightColor.c_str()), 1, &lights[i].lightColor[0]);
+	}
+
 	glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
 
 	//Render To Quad
