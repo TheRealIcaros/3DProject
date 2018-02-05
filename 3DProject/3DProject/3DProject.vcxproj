@@ -71,7 +71,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(SolutionDir)\Include\glad\include;$(SolutionDir)\Include\glm;$(SolutionDir)\Include\stb_image;$(SolutionDir)\Include\glfw-3.2.1.bin.WIN32\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Include\glfw-3.2.1.bin.WIN32\lib-vc2015;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\lib;$(SolutionDir)\Include\glfw-3.2.1.bin.WIN32\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -79,9 +79,11 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)/Include/assimp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)/Include/assimp/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -121,22 +123,28 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="FragmentShader.glsl" />
-    <None Include="GeometryShader.glsl" />
+    <None Include="GeometryPassFS.glsl" />
+    <None Include="GeometryShader.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
     <None Include="LightingPassFS.glsl" />
     <None Include="LightingPassVS.glsl" />
-    <None Include="VertexShader.glsl" />
+    <None Include="GeometryPassVS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Include\glad\src\glad.c" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="ShaderCreater.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\stb_image\stb_image.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Defines.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="ShaderCreater.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,17 +1,18 @@
 #include <glad\glad.h>
 #include <crtdbg.h>
-#include <stb_image.h> //For loading textures and images
+//#include <stb_image.h> //For loading textures and images
 #include <stdio.h>
-#include <sstream>
 
 //Own classes
 #include "Camera.h"
 #include "ShaderCreater.h"
+#include "Model.h"
+#include "Defines.h"
 
 //3D-math
-#include <glm.hpp>
-#include <gtc/matrix_transform.hpp>
-#include <gtc/type_ptr.hpp>
+//#include <glm.hpp>
+//#include <gtc/matrix_transform.hpp>
+//#include <gtc/type_ptr.hpp>
 
 void initiateGLFW();
 GLFWwindow *createWindow();
@@ -24,19 +25,36 @@ void setTriangleData();
 void Render();
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 //void loadTexture(const char* texturePath, GLuint &textureID);
-GLuint loadBMPTexture(const char* texturePath, GLuint &textureID);
+//GLuint loadBMPTexture(const char* texturePath, GLuint &textureID);
 void createUBO();
 void createGbuffer();
 void renderQuad();
 void renderGeometryPass();
 void renderLightingPass();
-
+  
 //Shader
 ShaderCreater geometryPass;
 ShaderCreater lightingPass;
 
+//Lights
+struct Light
+{
+	Light(glm::vec3 pos, glm::vec3 color)
+	{
+		lightPos = pos;
+		lightColor = color;
+	}
+
+	glm::vec3 lightPos;
+	glm::vec3 lightColor;
+};
+
+vector<Light> lights;
+
+//Model
+vector<Model> models;
+
 //GLuint Variables
-//
 GLuint VBO = 0;
 GLuint VAO = 0;
 
@@ -49,6 +67,7 @@ GLuint UBO = 0;
 
 //Texture
 GLuint textureID;
+GLuint textureID2;
 
 //gbuffer
 unsigned int gBuffer, gPosition, gNormal, gColorSpec;
@@ -137,7 +156,7 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 	//Create Shaders
-	geometryPass.createShaders("VertexShader", "GeometryShader", "FragmentShader");
+	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 
 	//Create gbuffers
@@ -147,7 +166,16 @@ int main()
 	createUBO();
 
 	//Set triangle-data
-	setTriangleData();
+	//setTriangleData();
+
+	//Add lights
+	lights.push_back(Light(glm::vec3(0.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 1.0)));
+	lights.push_back(Light(glm::vec3(0.0, 0.0, 5.0), glm::vec3(0.0, 1.0, 0.0)));
+	lights.push_back(Light(glm::vec3(5.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0)));
+
+	//Add Models
+	models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));
+	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 0.0)));
 
 	//Cursor Disabled/non-visible
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -155,8 +183,8 @@ int main()
 	//Depth testing enabled
 	glEnable(GL_DEPTH_TEST);
 
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
 
 	//Render Loop
 	while (!glfwWindowShouldClose(window))
@@ -236,214 +264,10 @@ void calculateDeltaTime()
 	}
 }
 
-//void createShaders()
-//{
-	////These variables handles error messages
-	//GLint success = 0;
-	//char infoLog[512];
-	//
-	////Vertex shader
-	//GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-	////Open glsl file and put it in a string
-	//ifstream shaderFile("VertexShader.glsl");
-	//std::string shaderText((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
-	//shaderFile.close();
-	////Make a double pointer (only valid here)
-	//const char* shaderTextPtr = shaderText.c_str();
-	////Ask GL to load this
-	//glShaderSource(vs, 1, &shaderTextPtr, nullptr);
-	//
-	////Compile shader
-	//glCompileShader(vs);
-	//
-	////Test if compilation of shader-file went ok
-	//glGetShaderiv(vs, GL_COMPILE_STATUS, &success);
-	//if (success == GL_FALSE)
-	//{
-	//	glGetShaderInfoLog(vs, 512, NULL, infoLog);
-	//	std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	//	system("PAUSE");
-	//	glDeleteShader(vs);
-	//	exit(-1);
-	//}
-	//
-	////Geometry shader
-	//GLuint gs = glCreateShader(GL_GEOMETRY_SHADER);
-	////Open glsl file and put it in a string
-	//shaderFile.open("GeometryShader.glsl");
-	//shaderText.assign((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
-	//shaderFile.close();
-	////Make a double pointer (only valid here)
-	//shaderTextPtr = shaderText.c_str();
-	////Ask GL to load this
-	//glShaderSource(gs, 1, &shaderTextPtr, nullptr);
-	//
-	////////Compile shader
-	//glCompileShader(gs);
-	//
-	//////Test if compilation of shader-file went ok
-	//glGetShaderiv(gs, GL_COMPILE_STATUS, &success);
-	//if (success == GL_FALSE)
-	//{
-	//	glGetShaderInfoLog(gs, 512, NULL, infoLog);
-	//	std::cout << "ERROR::SHADER::GEOMETRY::COMPILATION_FAILED\n" << infoLog << std::endl;
-	//	system("PAUSE");
-	//	glDeleteShader(gs);
-	//	exit(-1);
-	//}
-	//
-	////Fragment shader
-	//GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-	////Open glsl file and put it in a string
-	//shaderFile.open("FragmentShader.glsl");
-	//shaderText.assign((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
-	//shaderFile.close();
-	////Make a double pointer (only valid here)
-	//shaderTextPtr = shaderText.c_str();
-	////Ask GL to load this
-	//glShaderSource(fs, 1, &shaderTextPtr, nullptr);
-	//
-	////Compile shader
-	//glCompileShader(fs);
-	//
-	////Test if compilation of shader-file went ok
-	//glGetShaderiv(fs, GL_COMPILE_STATUS, &success);
-	//if (success == GL_FALSE)
-	//{
-	//	glGetShaderInfoLog(fs, 512, NULL, infoLog);
-	//	std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-	//	system("PAUSE");
-	//	glDeleteShader(fs);
-	//	exit(-1);
-	//}
-	//
-	////Link shader-program (connect vs,(gs) and fs)
-	//shaderProgram = glCreateProgram();
-	//glAttachShader(shaderProgram, vs);
-	//glAttachShader(shaderProgram, gs);
-	//glAttachShader(shaderProgram, fs);
-	//glLinkProgram(shaderProgram);
-	//
-	////Create a Uniform Buffer Object(UBO)
-	////Create a buffer name
-	//glGenBuffers(1, &UBO);
-	////Bind buffer to work further with it
-	//glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-	////Allocate memory for the buffer in the GPU
-	//glBufferData(GL_UNIFORM_BUFFER, sizeof(valuesFromCPUToGPU), NULL, GL_STATIC_DRAW);
-	////Because we hard-coded "Binding = 3" in the shader we can do this:
-	////Bind Uniform Buffer to binding point 3 (without caring about index of UBO)
-	//glBindBufferBase(GL_UNIFORM_BUFFER, 3, UBO);
-	////Good practice , unbind buffer
-	//glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	//
-	////Checks if the linking between the shaders works
-	//glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	//if (!success) {
-	//	glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-	//	std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
-	//	system("PAUSE");
-	//	exit(-1);
-	//}
-	//
-	//// in any case (compile sucess or not), we only want to keep the 
-	//// Program around, not the shaders.
-	//glDetachShader(shaderProgram, vs);
-	//glDetachShader(shaderProgram, gs);
-	//glDetachShader(shaderProgram, fs);
-	//glDeleteShader(vs);
-	//glDeleteShader(gs);
-	//glDeleteShader(fs);
-//}
-
 void setTriangleData()
 {
 	float vertices[] = 
 	{ 
-		/*-0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f, 
-		 0.5f,  0.5f, -0.5f, 
-		 0.5f,  0.5f, -0.5f, 
-		-0.5f,  0.5f, -0.5f, 
-		-0.5f, -0.5f, -0.5f, 
-
-		-0.5f, -0.5f,  0.5f, 
-		 0.5f, -0.5f,  0.5f, 
-		 0.5f,  0.5f,  0.5f, 
-		 0.5f,  0.5f,  0.5f, 
-		-0.5f,  0.5f,  0.5f, 
-		-0.5f, -0.5f,  0.5f, 
-
-		-0.5f,  0.5f,  0.5f, 
-		-0.5f,  0.5f, -0.5f, 
-		-0.5f, -0.5f, -0.5f, 
-		-0.5f, -0.5f, -0.5f, 
-		-0.5f, -0.5f,  0.5f, 
-		-0.5f,  0.5f,  0.5f, 
-
-		 0.5f,  0.5f,  0.5f, 
-		 0.5f,  0.5f, -0.5f, 
-		 0.5f, -0.5f, -0.5f, 
-		 0.5f, -0.5f, -0.5f, 
-		 0.5f, -0.5f,  0.5f, 
-		 0.5f,  0.5f,  0.5f,
-
-		-0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f, 
-		 0.5f, -0.5f,  0.5f, 
-		 0.5f, -0.5f,  0.5f, 
-		-0.5f, -0.5f,  0.5f, 
-		-0.5f, -0.5f, -0.5f,
-
-		-0.5f,  0.5f, -0.5f,
-		 0.5f,  0.5f, -0.5f,
-		 0.5f,  0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f, -0.5f*/
-
-		 /*-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f*/
-
 		//Back Face
 		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
 		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -517,7 +341,8 @@ void setTriangleData()
 	glBindVertexArray(0);
 
 	//loadTexture("../Textures/durkplat.bmp", textureID);
-	loadBMPTexture("../Textures/durkplat.bmp", textureID);
+	//loadBMPTexture("../Textures/durkplat.bmp", textureID);
+	//loadBMPTexture("../Textures/ball.bmp", textureID2);
 }
 
 void processInput(GLFWwindow *window)
@@ -583,76 +408,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	lastY = ypos;
 
 	camera.mouseMovement(xoffset, yoffset);
-}
-
-//void loadTexture(const char* texturePath, GLuint &textureID)
-//{
-//	GLint width, height, nrChannels;	//The width, height and number of color channels
-//
-//	unsigned char* data = stbi_load(texturePath, &width, &height, &nrChannels, 0);
-//}
-
-GLuint loadBMPTexture(const char* texturePath, GLuint &textureID)
-{
-	unsigned char header[54]; //All textures will begin with 54-bytes header
-	unsigned int dataPos;	//The position in the file where  the actual data begins
-	unsigned int width;
-	unsigned int height;
-	unsigned int textureSize; // = width * height * 3
-	//Actual RGB-data
-	unsigned char* RGBdata;
-
-	FILE ** textureFile =  new FILE*(); 
-	fopen_s(textureFile, texturePath, "rb");
-	if (!textureFile) //If texture didn't load
-	{
-		cout << "Image could not be opened\n" << endl;
-		return 0;
-	}
-
-	if (fread(header, 1, 54, *textureFile) != 54)//If header is not 54-bytes
-	{
-		cout << "Not a correct BMP-file" << endl;
-		return 0;
-	}
-
-	if (header[0] != 'B' || header[1] != 'M')
-	{
-		cout << "Not a correct BMP-file" << endl;
-		return 0;
-	}
-
-	dataPos = *(int*)&(header[0x0A]);
-	textureSize = *(int*)&(header[0x22]);
-	width = *(int*)&(header[0x12]);
-	height = *(int*)&(header[0x16]);
-
-	if (textureSize == 0)//If the BMP-file is misformatted
-		textureSize = width * height * 3;
-
-	if (dataPos == 0)
-		dataPos = 54;
-
-	RGBdata = new unsigned char[textureSize];
-
-	fread(RGBdata, 1, textureSize, *textureFile);
-
-	fclose(*textureFile);
-
-	
-	glGenTextures(1, &textureID);
-
-	glBindTexture(GL_TEXTURE_2D, textureID);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, RGBdata);
-	
-	//Free the allocated data
-	delete[] RGBdata;
-	delete[] textureFile;
 }
 
 void createUBO()
@@ -748,20 +503,17 @@ void renderGeometryPass()
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//Bind BoxTexture
-	glActiveTexture(GL_TEXTURE0);
-	glUniform1i(glGetUniformLocation(geometryPass.getShaderProgramID(), "texSampler"), 0);
-	glBindTexture(GL_TEXTURE_2D, textureID);
-
 	glUniformMatrix4fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "View"), 1, GL_FALSE, &gpuBufferData.View[0][0]);
 
 	//Bind UBO for sending GPU data to GeometryPass Program
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
+		
+	for (int i = 0; i < models.size(); i++)
+	{
+		models[i].Draw(geometryPass);
+	}
 
-	//Bind and Render Vertices
-	glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -786,6 +538,16 @@ void renderLightingPass()
 	glBindTexture(GL_TEXTURE_2D, gColorSpec);
 
 	//	TODO:(Fix multiple lights and send it to LightingPassFS)
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "nrOfLights"), lights.size());
+	for (int i = 0; i < lights.size(); i++)
+	{
+		string lightPos = "lights[" + std::to_string(i) + "].Position";
+		string lightColor = "lights[" + std::to_string(i) + "].Color";
+
+		glUniform3fv(glGetUniformLocation(lightingPass.getShaderProgramID(), lightPos.c_str()), 1, &lights[i].lightPos[0]);
+		glUniform3fv(glGetUniformLocation(lightingPass.getShaderProgramID(), lightColor.c_str()), 1, &lights[i].lightColor[0]);
+	}
+
 	glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
 
 	//Render To Quad

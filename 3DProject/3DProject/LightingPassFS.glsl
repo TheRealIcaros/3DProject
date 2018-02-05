@@ -9,54 +9,46 @@ out vec4 FragColor;
 struct Light {
 	vec3 Position;
 	vec3 Color;
-
-	float Linear;
-	float Quadratic;
-	float Radius;
 };
 
-vec3 lightPos = vec3(500, 10000, 0);
+uniform int nrOfLights;
+const int lightNr = 16;		//Maximum of 16 lights in light vector array in CPU!!!
+uniform Light lights[lightNr];
 uniform vec3 viewPos;
 
 void main()
 {
-	//FragColor = vec4(1.0f, 0.5f, 0.3f, 1.0f);
-	//
-	//float ambientLight = 0.1f;				//The ambient-component
-	//vec3 lightPosition = vec3(0, 0, 5);	//The position of the light in the scene
-	//vec3 lightDirection = normalize(lightPosition - worldPosition.xyz);		//The direction the light is faceing
-	//
-	//float diffuse = clamp(dot(normal.xyz, lightDirection), 0, 1);	//The diffuse-component
-	//
-	//FragColor  =  vec4(texture(texSampler, UV).rgb, 0.2);
-	//
-	//vec4 mySample = vec4(texture(texSampler, UV).rgb, 0);
-	//FragColor = mySample * (ambientLight + diffuse);
-	//fragment_color = mySample * (ambientLight + diffuse);
-
-
-	// get data from g-buffer
+	//Get Data from gBuffer
 	vec3 FragPos = texture(gPosition, textureCoordinates).rgb;
 	vec3 Normal = texture(gNormal, textureCoordinates).rgb;
 	vec3 Color = texture(gColorSpec, textureCoordinates).rgb;
-	float Specular = texture(gColorSpec, textureCoordinates).a;
 
-	if (gl_FrontFacing)
-		Normal = -Normal;
+	//Ambient Light
+	float ambient = 0.2;
 
-	// TODO: Add Multiple Lightsources
-	// Calculate lighting as usual
-	vec3 lighting = Color * 0.5;
+	//Variables
 	vec3 viewDir = normalize(viewPos - FragPos);
+	vec3 lightDir;
+	vec3 reflectDir;
+	vec3 result = ambient * Color;
 	
-	//lightPos = viewPos;
-	//Diffuse
-	vec3 lightDir = normalize(lightPos - FragPos);
-	vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Color;
-	// Specular TODO
-	
-	// Attenuation
-	lighting += diffuse;
-	
-	FragColor = vec4(lighting, 1.0);
+	for (int i = 0; i < nrOfLights; i++)
+	{
+		lightDir = -normalize(lights[i].Position - FragPos);
+		reflectDir = reflect(lightDir, Normal);
+
+		//Diffuse Light
+		vec3 diffuse = max(dot(Normal, -lightDir), 0.0) * Color * lights[i].Color;
+
+		//Specular Light
+		float specularStrength = 0.5f;
+		float spec = pow(max(dot(viewDir, reflectDir), 0.0), 64);
+		vec3 specular = spec * specularStrength * lights[i].Color;
+
+		//Result
+		result += diffuse + specular;
+	}
+
+	//FragOut
+	FragColor = vec4(result, 1.0);
 }
