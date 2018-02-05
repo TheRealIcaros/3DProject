@@ -8,6 +8,7 @@
 #include "ShaderCreater.h"
 #include "Model.h"
 #include "Defines.h"
+#include "Terrain.h"
 
 //3D-math
 //#include <glm.hpp>
@@ -50,6 +51,9 @@ struct Light
 };
 
 vector<Light> lights;
+
+//Terrain
+Terrain terrain;
 
 //Model
 vector<Model> models;
@@ -167,6 +171,9 @@ int main()
 
 	//Set triangle-data
 	//setTriangleData();
+
+	//Add Terrain
+	//terrain.triangulate();
 
 	//Add lights
 	lights.push_back(Light(glm::vec3(0.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 1.0)));
