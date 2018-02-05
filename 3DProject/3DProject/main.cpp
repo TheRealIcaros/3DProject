@@ -78,8 +78,8 @@ Camera camera;
 
 //Pitch/Yaw Properties
 bool firstMouse = true;
-float lastX = 800.0f / 2.0f;
-float lastY = 600.0f / 2.0f;
+float lastX = WIDTH / 2.0f;
+float lastY = HEIGHT / 2.0f;
 
 glm::mat4 WorldMatrix()
 {
@@ -146,7 +146,13 @@ int main()
 	gladTest();
 	
 	//Set Viewport
-	glViewport(0, 0, 800, 600);
+	glViewport(0, 0, WIDTH, HEIGHT);
+
+	//Enables ScissorTest
+	glEnable(GL_SCISSOR_TEST);
+
+	//Splits the screen in half
+	glScissor(0, 0, WIDTH/2, HEIGHT);
 
 	//Activate resize viewport 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -221,7 +227,7 @@ void initiateGLFW()
 
 GLFWwindow *createWindow()
 {
-	GLFWwindow* window = glfwCreateWindow(800, 600, "3D Project", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "3D Project", NULL, NULL);
 	if (window == NULL)
 	{
 		cout << "Failes to create GLFW window" << endl;
