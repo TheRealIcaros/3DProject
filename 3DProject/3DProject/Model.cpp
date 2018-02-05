@@ -6,7 +6,7 @@ Model::Model()
 
 }
 
-Model::Model(char *path, glm::vec3 startPosition)
+Model::Model(const char *path, glm::vec3 startPosition)
 {
 	this->modelPosition = startPosition;
 	loadModel(path);

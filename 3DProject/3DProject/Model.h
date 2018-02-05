@@ -26,7 +26,7 @@ private:
 	unsigned int TextureFromFile(const char *path, const string &directory);
 public:
 	Model();
-	Model(char *path, glm::vec3 startPosition = { 0.0, 0.0, 0.0 });
+	Model(const char *path, glm::vec3 startPosition = { 0.0, 0.0, 0.0 });
 	~Model();
 	void Draw(ShaderCreater shader);
 	glm::vec3 getModelPosition()const;
