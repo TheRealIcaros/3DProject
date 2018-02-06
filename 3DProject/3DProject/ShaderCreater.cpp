@@ -144,5 +144,5 @@ void ShaderCreater::createShaders(std::string vertexShader, std::string geometry
 
 void ShaderCreater::setFloat(std::string name, int value) const
 {
-	glUniform1f(glGetUniformLocation(this->programID, name.c_str()), value);
+	glUniform1i(glGetUniformLocation(this->programID, name.c_str()), value);
 }

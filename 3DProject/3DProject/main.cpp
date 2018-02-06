@@ -78,8 +78,8 @@ Camera camera;
 
 //Pitch/Yaw Properties
 bool firstMouse = true;
-float lastX = WIDTH / 2.0f;
-float lastY = HEIGHT / 2.0f;
+double lastX = WIDTH / 2.0f;
+double lastY = HEIGHT / 2.0f;
 
 glm::mat4 WorldMatrix()
 {
@@ -410,12 +410,12 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 		firstMouse = false;
 	}
 
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; //Reversed since y-coordinates go from bottom to top
+	double xoffset = xpos - lastX;
+	double yoffset = lastY - ypos; //Reversed since y-coordinates go from bottom to top
 	lastX = xpos;
 	lastY = ypos;
 
-	camera.mouseMovement(xoffset, yoffset);
+	camera.mouseMovement((float)xoffset, (float)yoffset);
 }
 
 void createUBO()
@@ -517,7 +517,7 @@ void renderGeometryPass()
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
 		
-	for (int i = 0; i < models.size(); i++)
+	for (unsigned int i = 0; i < models.size(); i++)
 	{
 		models[i].Draw(geometryPass);
 	}
@@ -547,7 +547,7 @@ void renderLightingPass()
 
 	//	TODO:(Fix multiple lights and send it to LightingPassFS)
 	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "nrOfLights"), lights.size());
-	for (int i = 0; i < lights.size(); i++)
+	for (unsigned int i = 0; i < lights.size(); i++)
 	{
 		string lightPos = "lights[" + std::to_string(i) + "].Position";
 		string lightColor = "lights[" + std::to_string(i) + "].Color";
