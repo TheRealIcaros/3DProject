@@ -147,12 +147,13 @@ int main()
 	
 	//Set Viewport
 	glViewport(0, 0, WIDTH, HEIGHT);
+	//glViewport(0, 0, WIDTH/2, HEIGHT);
 
-	//Enables ScissorTest
-	glEnable(GL_SCISSOR_TEST);
+	////Splits the screen in half
+	//glScissor(0, 0, WIDTH/2, HEIGHT);
 
-	//Splits the screen in half
-	glScissor(0, 0, WIDTH/2, HEIGHT);
+	////Enables ScissorTest
+	//glEnable(GL_SCISSOR_TEST);
 
 	//Activate resize viewport 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -204,6 +205,7 @@ int main()
 		//Render
 		Render();
 
+		glViewport(0, 0, WIDTH, HEIGHT);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
