@@ -16,6 +16,8 @@ const int lightNr = 16;		//Maximum of 16 lights in light vector array in CPU!!!
 uniform Light lights[lightNr];
 uniform vec3 viewPos;
 // HÄR NÅGONSTANS SÅ SKA GLOW LIGGA
+
+
 void main()
 {
 	//Get Data from gBuffer

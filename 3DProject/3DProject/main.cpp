@@ -31,11 +31,13 @@ void createGbuffer();
 void renderQuad();
 void renderGeometryPass();
 void renderLightingPass();
-  
+void renderHDR();
 //Shader
 ShaderCreater geometryPass;
 ShaderCreater lightingPass;
-
+//ShaderCreater hdrPass;
+ShaderCreater gaussPass;
+ShaderCreater glowPass;
 //Lights
 struct Light
 {
@@ -50,6 +52,13 @@ struct Light
 };
 
 vector<Light> lights;
+
+
+////hdr
+//bool hdr = false;
+//bool hdrKeyPressed = false;
+//float exposure = 1.0f;
+
 
 //Model
 vector<Model> models;
@@ -72,6 +81,10 @@ GLuint textureID2;
 //gbuffer
 unsigned int gBuffer, gPosition, gNormal, gColorSpec;
 unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+
+// Glow textures
+unsigned int lightingBuffer, original, blurred;
+
 
 //My Camera
 Camera camera;
@@ -158,6 +171,12 @@ int main()
 	//Create Shaders
 	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
+	//hdrPass.createShaders("hdrVS", "NULL", "hdrFS");
+	gaussPass.createShaders("GaussVS", "NULL", "GaussFS");
+	glowPass.createShaders("glowVS", "NULL", "glowFS");
+
+
+
 
 	//Create gbuffers
 	createGbuffer(); 
@@ -391,6 +410,10 @@ void Render()
 
 	//2. Lighting Pass
 	renderLightingPass();
+
+	//3. HDR pass
+	//renderHDR();
+
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -465,6 +488,25 @@ void createGbuffer()
 	glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, WIDTH, HEIGHT);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+
+	{ // Glow
+		glGenFramebuffers(1, &lightingBuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, lightingBuffer);
+
+		glGenTextures(1, &original);
+		glBindTexture(GL_TEXTURE_2D, original);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, original, 0);
+
+		glGenTextures(1, &blurred);
+		glBindTexture(GL_TEXTURE_2D, blurred);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, blurred, 0);
+	}
 }
 
 void renderQuad()
@@ -549,7 +591,42 @@ void renderLightingPass()
 	}
 
 	glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
-
+	
+	//renderHDR();
+	
 	//Render To Quad
 	renderQuad();
 }
+
+//void renderHDR()
+//{
+//
+//	//floating point buffer
+//	unsigned int hdrFBO;
+//	glGenFramebuffers(1, &hdrFBO);
+//
+//	unsigned int  colorBuffer;
+//	glGenTextures(1, &colorBuffer);
+//	glBindTexture(GL_TEXTURE_2D, colorBuffer);
+//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, WIDTH, HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//
+//
+//	unsigned int rboDepth;
+//	glGenRenderbuffers(1, &rboDepth);
+//	glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+//	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, WIDTH, HEIGHT);
+//
+//	glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
+//	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+//	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+//		std::cout << "Framebuffer not complete!" << std::endl;
+//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//
+//
+//	glUseProgram(hdrPass.getShaderProgramID());
+//
+//	//renderQuad();
+//}
