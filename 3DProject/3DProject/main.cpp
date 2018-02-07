@@ -189,9 +189,6 @@ int main()
 	//Depth testing enabled
 	glEnable(GL_DEPTH_TEST);
 
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_BACK);
-
 	//Render Loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -448,8 +445,11 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	lastX = xpos;
 	lastY = ypos;
 
+	if (cameraSwaped == true)
+		yoffset = 0.0f;
+
 	camera.mouseMovement((float)xoffset, (float)yoffset);
-	frustumCamera.mouseMovement((float)xoffset, 0.0f);
+	frustumCamera.mouseMovement((float)xoffset, (float)yoffset);
 }
 
 void createUBO()
