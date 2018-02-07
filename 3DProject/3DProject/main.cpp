@@ -597,13 +597,13 @@ void renderLightingPass()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, lightingBuffer);
 
-	glActiveTexture(GL_TEXTURE3);
-	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "original"), 3);
-	glBindTexture(GL_TEXTURE_2D, original);
+	//glActiveTexture(GL_TEXTURE3);
+	//glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "original"), 3);
+	//glBindTexture(GL_TEXTURE_2D, original);
 
-	glActiveTexture(GL_TEXTURE4);
-	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "blurred"), 4);
-	glBindTexture(GL_TEXTURE_2D, blurred);
+	//glActiveTexture(GL_TEXTURE4);
+	//glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "blurred"), 4);
+	//glBindTexture(GL_TEXTURE_2D, blurred);
 
 
 
