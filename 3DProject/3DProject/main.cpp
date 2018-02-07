@@ -71,7 +71,7 @@ unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_C
 
 //My Camera & camera values
 Camera camera;
-Camera frustumCamera(glm::vec3(0.0f, 7.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+Camera frustumCamera(glm::vec3(0.0f, 7.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
 bool cameraSwaped = false;
 
 //Pitch/Yaw Properties
@@ -359,13 +359,11 @@ void processInput(GLFWwindow *window)
 	{
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()));
 		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * frustumCamera.getUpVector());
-		//frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * glm::normalize(frustumCamera.getLookAtVector()));
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()) * -1.0f);
 		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * frustumCamera.getUpVector() * -1.0f);
-		//frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * glm::normalize(frustumCamera.getLookAtVector()) * -1.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
@@ -404,16 +402,9 @@ void Render()
 
 	//Update Inputs
 	if (cameraSwaped == false)
-	{
 		gpuBufferData.View = camera.getView();
-
-		printf("Lookat Vector: x:  %d, y: %d, z: %d\n", camera.getLookAtVector().x, camera.getLookAtVector().y, camera.getLookAtVector().z);
-	}
 	else
-	{
 		gpuBufferData.View = frustumCamera.getView();
-		printf("Lookat Vector: x:  %d, y: %d, z: %d\n", frustumCamera.getLookAtVector().x, frustumCamera.getLookAtVector().y, frustumCamera.getLookAtVector().z);
-	}
 
 	//1. Geometry Pass
 	renderGeometryPass();
@@ -437,10 +428,9 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	lastY = ypos;
 
 	if (cameraSwaped == true)
-		xoffset = 0.0f;
+		yoffset = 0.0f;
 
 	camera.mouseMovement((float)xoffset, (float)yoffset);
-	frustumCamera.mouseMovement((float)xoffset, (float)yoffset);
 }
 
 void createUBO()
