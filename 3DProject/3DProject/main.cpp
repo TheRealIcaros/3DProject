@@ -555,7 +555,7 @@ void renderGeometryPass()
 	{
 		models[i].Draw(geometryPass);
 	}
-
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -592,7 +592,23 @@ void renderLightingPass()
 
 	glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
 	
+
+
+
+	glBindFramebuffer(GL_FRAMEBUFFER, lightingBuffer);
+
+	glActiveTexture(GL_TEXTURE3);
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "original"), 3);
+	glBindTexture(GL_TEXTURE_2D, original);
+
+	glActiveTexture(GL_TEXTURE4);
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "blurred"), 4);
+	glBindTexture(GL_TEXTURE_2D, blurred);
+
+
+
 	//renderHDR();
+
 	
 	//Render To Quad
 	renderQuad();
