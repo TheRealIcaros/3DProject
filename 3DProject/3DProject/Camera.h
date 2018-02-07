@@ -27,7 +27,7 @@ private:
 	float speed;
 public:
 	Camera();
-	Camera(glm::vec3 cameraPosition, glm::vec3 lookAtVector);
+	Camera(glm::vec3 cameraPosition, glm::vec3 lookAtVector, glm::vec3 upvector);
 	~Camera();
 	void setLookAtVector(glm::vec3 lookAtVector);
 	void moveCameraPosition(glm::vec3 movement);

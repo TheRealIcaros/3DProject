@@ -2,7 +2,7 @@
 #include <crtdbg.h>
 //#include <stb_image.h> //For loading textures and images
 #include <stdio.h>
-
+#include <gl\GL.h>
 //Own classes
 #include "Camera.h"
 #include "ShaderCreater.h"
@@ -41,7 +41,6 @@ struct Light
 		lightPos = pos;
 		lightColor = color;
 	}
-
 	glm::vec3 lightPos;
 	glm::vec3 lightColor;
 };
@@ -72,7 +71,7 @@ unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_C
 
 //My Camera & camera values
 Camera camera;
-Camera frustumCamera(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+Camera frustumCamera(glm::vec3(0.0f, 4.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 bool cameraSwaped = false;
 
 //Pitch/Yaw Properties
@@ -146,19 +145,11 @@ int main()
 	
 	//Set Viewport
 	glViewport(0, 0, WIDTH, HEIGHT);
-	//glViewport(0, 0, WIDTH/2, HEIGHT);
-
-	////Splits the screen in half
-	//glScissor(0, 0, WIDTH/2, HEIGHT);
-
-	////Enables ScissorTest
-	//glEnable(GL_SCISSOR_TEST);
 
 	//Activate resize viewport 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	//Check if mouse is changed
-	//glfwSetCursorPosCallback(window, myControls.mouse_Callback(window, xpos, ypos, lookAtVector));
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 	//Create Shaders
@@ -170,9 +161,6 @@ int main()
 
 	//Create UBO
 	createUBO();
-
-	//Set triangle-data
-	//setTriangleData();
 
 	//Add lights
 	lights.push_back(Light(glm::vec3(0.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 1.0)));
@@ -416,13 +404,14 @@ void Render()
 	if (cameraSwaped == false)
 	{
 		gpuBufferData.View = camera.getView();
+
+		printf("Lookat Vector: x:  %d, y: %d, z: %d\n", camera.getLookAtVector().x, camera.getLookAtVector().y, camera.getLookAtVector().z);
 	}
 	else
 	{
-		
 		gpuBufferData.View = frustumCamera.getView();
+		printf("Lookat Vector: x:  %d, y: %d, z: %d\n", frustumCamera.getLookAtVector().x, frustumCamera.getLookAtVector().y, frustumCamera.getLookAtVector().z);
 	}
-	
 
 	//1. Geometry Pass
 	renderGeometryPass();

@@ -13,11 +13,11 @@ Camera::Camera()
 	this->View = glm::lookAt(this->cameraPosition, this->cameraPosition + this->lookAtVector, this->upVector);
 }
 
-Camera::Camera(glm::vec3 cameraPosition, glm::vec3 lookAtVector)
+Camera::Camera(glm::vec3 cameraPosition, glm::vec3 lookAtVector, glm::vec3 upvector)
 {
 	this->cameraPosition = cameraPosition;
 	this->lookAtVector = lookAtVector;
-	this->upVector = { 0.0f, 1.0f, 0.0f };
+	this->upVector = upvector;
 	this->yaw = -90.0f;
 	this->pitch = 0.0f;
 	this->sensitivity = 0.05f;
