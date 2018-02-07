@@ -23,6 +23,7 @@ Camera::Camera(glm::vec3 cameraPosition, glm::vec3 lookAtVector)
 	this->sensitivity = 0.05f;
 	this->speed = 5.0f;
 
+
 	this->View = glm::lookAt(this->cameraPosition, this->cameraPosition + this->lookAtVector, this->upVector);
 }
 

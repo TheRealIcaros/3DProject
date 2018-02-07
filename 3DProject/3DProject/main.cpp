@@ -20,12 +20,9 @@ void gladTest();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void calculateDeltaTime();
 void processInput(GLFWwindow *window);
-//void createShaders();
 void setTriangleData();
 void Render();
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-//void loadTexture(const char* texturePath, GLuint &textureID);
-//GLuint loadBMPTexture(const char* texturePath, GLuint &textureID);
 void createUBO();
 void createGbuffer();
 void renderQuad();
@@ -73,8 +70,10 @@ GLuint textureID2;
 unsigned int gBuffer, gPosition, gNormal, gColorSpec;
 unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 
-//My Camera
+//My Camera & camera values
 Camera camera;
+Camera frustumCamera(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+bool cameraSwaped = false;
 
 //Pitch/Yaw Properties
 bool firstMouse = true;
@@ -372,18 +371,43 @@ void processInput(GLFWwindow *window)
 
 	//View inputs
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()));
+		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * glm::normalize(frustumCamera.getLookAtVector()));
+	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()) * -1.0f);
+		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * glm::normalize(frustumCamera.getLookAtVector()) * -1.0f);
+	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	{
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())) * -1.0f);
+		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(frustumCamera.getLookAtVector(), frustumCamera.getUpVector())) * -1.0f);
+	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	{
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())));
-
+		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(frustumCamera.getLookAtVector(), frustumCamera.getUpVector())));
+	}
+		
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);
+
+
+	//Change between the two cameras
+	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+	{
+		std::cout << "Camera swaped" << std::endl;
+
+		if (cameraSwaped == false)
+			cameraSwaped = true;	// Frustum camera
+		else
+			cameraSwaped = false;	// "Original" camera
+	}
+
 }
 
 void Render()
@@ -392,7 +416,16 @@ void Render()
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
 	//Update Inputs
-	gpuBufferData.View = camera.getView();
+	if (cameraSwaped == false)
+	{
+		gpuBufferData.View = camera.getView();
+	}
+	else
+	{
+		
+		gpuBufferData.View = frustumCamera.getView();
+	}
+	
 
 	//1. Geometry Pass
 	renderGeometryPass();
@@ -416,6 +449,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	lastY = ypos;
 
 	camera.mouseMovement((float)xoffset, (float)yoffset);
+	frustumCamera.mouseMovement((float)xoffset, 0.0f);
 }
 
 void createUBO()
@@ -555,8 +589,10 @@ void renderLightingPass()
 		glUniform3fv(glGetUniformLocation(lightingPass.getShaderProgramID(), lightPos.c_str()), 1, &lights[i].lightPos[0]);
 		glUniform3fv(glGetUniformLocation(lightingPass.getShaderProgramID(), lightColor.c_str()), 1, &lights[i].lightColor[0]);
 	}
-
-	glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
+	if(cameraSwaped == false)
+		glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
+	else
+		glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), frustumCamera.getPosition().x, frustumCamera.getPosition().y, frustumCamera.getPosition().z);
 
 	//Render To Quad
 	renderQuad();
