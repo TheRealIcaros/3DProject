@@ -10,6 +10,8 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
+#include <stb_image.h>
+
 //My Define Values
 #define PI 3.14159265359f
 #define ROTATION -1.0f

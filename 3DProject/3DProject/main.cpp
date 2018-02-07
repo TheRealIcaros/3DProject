@@ -163,6 +163,9 @@ int main()
 	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 
+	//Create Terrain
+	terrain = Terrain(vec3(0.0, 0.0, 0.0), "../Models/Terrain/heightMap.bmp");
+
 	//Create gbuffers
 	createGbuffer(); 
 
@@ -171,9 +174,6 @@ int main()
 
 	//Set triangle-data
 	//setTriangleData();
-
-	//Add Terrain
-	//terrain.triangulate();
 
 	//Add lights
 	lights.push_back(Light(glm::vec3(0.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 1.0)));
@@ -515,7 +515,7 @@ void renderGeometryPass()
 	//Bind UBO for sending GPU data to GeometryPass Program
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
-		
+	
 	for (int i = 0; i < models.size(); i++)
 	{
 		models[i].Draw(geometryPass);

@@ -6,10 +6,17 @@ Model::Model()
 
 }
 
-Model::Model(char *path, glm::vec3 startPosition)
+Model::Model(const char *path, glm::vec3 startPosition)
 {
 	this->modelPosition = startPosition;
 	loadModel(path);
+}
+
+Model::Model(vector<Vertex> vertices, vector<unsigned int> indices)
+{
+	vector<Texture> textures;
+	//Mesh temp(vertices, indices, textures);
+	//this->meshes.push_back();
 }
 
 Model::~Model()

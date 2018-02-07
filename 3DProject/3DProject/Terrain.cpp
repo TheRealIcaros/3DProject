@@ -2,70 +2,92 @@
 
 Terrain::Terrain()
 {
-	this->height = 5;
-	this->width = 3;
-	this->terrainPosition = vec3(0.0, 0.0, 0.0);
 
-	//this->vertices = new vec3[this->height * this->width];
-	this->triangles = new int[(this->height * this->width) * 3];
-
-	createTerrain();
 }
 
-Terrain::Terrain(int height, int width, vec3 startPosition)
+Terrain::Terrain(vec3 startPosition, const char *path)
 {
-	this->height = height;
-	this->width = width;
+	this->maxHeight = 2;
+	this->minHeight = 0;
 	this->terrainPosition = startPosition;
-
-	//this->vertices = new vec3[this->height * this->width];
-	this->triangles = new int[(this->height * this->width) * 3];
+	this->imageData = loadHeightMap(path);
 
 	createTerrain();
 }
 
 Terrain::~Terrain()
 {
-	//delete[] this->vertices;
-	delete[] this->triangles;
+
+}
+
+unsigned char* Terrain::loadHeightMap(const char *path)
+{
+	int nrChannels;
+	unsigned char* data = stbi_load(path, &this->imageWidth, &this->imageHeight, &nrChannels, 0);
+	if(!data)
+	{
+		std::cout << "Failed to load height map" << endl;
+		data = NULL;
+	}
+	return data;
 }
 
 void Terrain::createTerrain()
 {
-	int index = 0;
-	for (int z = 0; z < this->height; z++)
+	for (int z = 0; z < this->imageHeight ; z++)
 	{
-		for (int x = 0; x < this->width; x++)
+		for (int x = 0; x < this->imageWidth; x++)
 		{
-			this->vertices.push_back(vec3((float)x, 0.0, (float)z));
+			float gray = ((float)this->imageData[z * this->imageWidth + x] +
+				(float)this->imageData[z * this->imageWidth + x + 1] +
+				(float)this->imageData[z * this->imageWidth + x + 2]) / 3;
 
-			printf("x: %f, z: %f\n", this->vertices[index].x, this->vertices[index].z);
-			index++;
+			gray = clamp(gray, this->minHeight, this->maxHeight);
+			vec3 position;
+			position.x = x;
+			position.y = gray;
+			position.z = z;
+			vertices.push_back(position);
+
+			printf("x: %f, y: %f, z: %f\n", position.x, position.y, position.z);
 		}
+		printf("\n");
 	}
+}
+
+vec3 Terrain::calculateNormal(vec3 p0, vec3 p1, vec3 p2)
+{
+	vec3 e0 = p0 - p1;
+	vec3 e1 = p2 - p1;
+
+	vec3 normal = normalize(cross(e0, e1));
+
+	return normal;
 }
 
 void Terrain::triangulate()
 {
-	int index = 0;
-	for (int z = 0; z < this->height - 1; z++)
+	for (int z = 0; z < this->imageHeight - 1; z++)
 	{
-		for (int x = 0; x < this->width - 1; x++)
+		for (int x = 0; x < this->imageWidth - 1; x++)
 		{		
 			//First triangle
-			this->triangles[index] = (this->width * z + x);
-			this->triangles[index + 1] = (this->width * z + x) + this->width;
-			this->triangles[index + 2] = (this->width * z + x) + 1;
+			this->indices.push_back(this->imageWidth * z + x);
+			this->indices.push_back((this->imageWidth * z + x) + this->imageWidth);
+			this->indices.push_back((this->imageWidth * z + x) + 1);
 
 			//Second triangle
-			this->triangles[index + 3] = (this->width * z + x) + 1;
-			this->triangles[index + 4] = (this->width * z + x) + this->width;
-			this->triangles[index + 5] = (this->width * z + x) + this->width + 1;
+			this->indices.push_back((this->imageWidth * z + x) + 1);
+			this->indices.push_back((this->imageWidth * z + x) + this->imageWidth);
+			this->indices.push_back((this->imageWidth * z + x) + this->imageWidth + 1);
 
 			/*printf("p0: %d, p1: %d, p2: %d\n", triangles[index], triangles[index + 1], triangles[index + 2]);
 			printf("p0: %d, p1: %d, p2: %d\n\n", triangles[index + 3], triangles[index + 4], triangles[index + 5]);*/
-
-			index += 6;
 		}
 	}
+}
+
+void Terrain::Draw(ShaderCreater shader)
+{
+	this->terrain.Draw(shader);
 }
