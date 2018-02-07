@@ -15,8 +15,8 @@ Model::Model(const char *path, glm::vec3 startPosition)
 Model::Model(vector<Vertex> vertices, vector<unsigned int> indices)
 {
 	vector<Texture> textures;
-	//Mesh temp(vertices, indices, textures);
-	//this->meshes.push_back();
+	Mesh temp(vertices, indices, textures);
+	this->meshes.push_back(temp);
 }
 
 Model::~Model()

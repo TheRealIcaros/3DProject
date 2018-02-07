@@ -7,7 +7,7 @@ Terrain::Terrain()
 
 Terrain::Terrain(vec3 startPosition, const char *path)
 {
-	this->maxHeight = 2;
+	this->maxHeight = 8;
 	this->minHeight = 0;
 	this->terrainPosition = startPosition;
 	this->imageData = loadHeightMap(path);
@@ -48,11 +48,11 @@ void Terrain::createTerrain()
 			position.y = gray;
 			position.z = z;
 			vertices.push_back(position);
-
-			printf("x: %f, y: %f, z: %f\n", position.x, position.y, position.z);
+			//printf("x: %f, y: %f, z: %f\n", position.x, position.y, position.z);
 		}
-		printf("\n");
+		//printf("\n");
 	}
+	triangulate();
 }
 
 vec3 Terrain::calculateNormal(vec3 p0, vec3 p1, vec3 p2)
@@ -85,6 +85,16 @@ void Terrain::triangulate()
 			printf("p0: %d, p1: %d, p2: %d\n\n", triangles[index + 3], triangles[index + 4], triangles[index + 5]);*/
 		}
 	}
+
+	vector<Vertex> outData;
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		Vertex temp;
+		temp.Position = vertices[i];
+		outData.push_back(temp);
+	}
+
+	this->terrain = Model(outData, this->indices);
 }
 
 void Terrain::Draw(ShaderCreater shader)
