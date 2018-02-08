@@ -3,8 +3,10 @@ uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gColorSpec;
 
+layout(location = 0) out vec4 FragColor;
+
 in vec2 textureCoordinates;
-out vec4 FragColor;
+//out vec4 FragColor;
 
 struct Light {
 	vec3 Position;
@@ -15,11 +17,12 @@ uniform int nrOfLights;
 const int lightNr = 16;		//Maximum of 16 lights in light vector array in CPU!!!
 uniform Light lights[lightNr];
 uniform vec3 viewPos;
-// HÄR NÅGONSTANS SÅ SKA GLOW LIGGA
 
 
 void main()
 {
+	
+
 	//Get Data from gBuffer
 	vec3 FragPos = texture(gPosition, textureCoordinates).rgb;
 	vec3 Normal = texture(gNormal, textureCoordinates).rgb;
@@ -53,4 +56,6 @@ void main()
 
 	//FragOut
 	FragColor = vec4(result, 1.0);
+
+	vec4 BlurrTex = FragColor;
 }

@@ -31,7 +31,7 @@ void createGbuffer();
 void renderQuad();
 void renderGeometryPass();
 void renderLightingPass();
-void renderHDR();
+//void renderHDR();
 //Shader
 ShaderCreater geometryPass;
 ShaderCreater lightingPass;
@@ -81,6 +81,10 @@ GLuint textureID2;
 //gbuffer
 unsigned int gBuffer, gPosition, gNormal, gColorSpec;
 unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+
+//lightningbuffer
+unsigned int lightAttach[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+
 
 // Glow textures
 unsigned int lightingBuffer, original, blurred;
@@ -506,6 +510,8 @@ void createGbuffer()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, blurred, 0);
+
+		glDrawBuffers(2, lightAttach);
 	}
 }
 
