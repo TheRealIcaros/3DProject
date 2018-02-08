@@ -67,7 +67,6 @@ void Camera::mouseMovement(float xoffset, float yoffset)
 
 // - GET/SET
 
-
 void Camera::setYaw(float yaw)
 {
 	this->yaw = yaw;

@@ -9,11 +9,6 @@
 #include "Model.h"
 #include "Defines.h"
 
-//3D-math
-//#include <glm.hpp>
-//#include <gtc/matrix_transform.hpp>
-//#include <gtc/type_ptr.hpp>
-
 void initiateGLFW();
 GLFWwindow *createWindow();
 void gladTest();
@@ -28,6 +23,7 @@ void createGbuffer();
 void renderQuad();
 void renderGeometryPass();
 void renderLightingPass();
+void renderFrustum();
   
 //Shader
 ShaderCreater geometryPass;
@@ -170,6 +166,7 @@ int main()
 	//Add Models
 	models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));
 	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 0.0)));
+	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-10.0, 0.0, 0.0)));
 
 	//Cursor Disabled/non-visible
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -577,4 +574,9 @@ void renderLightingPass()
 
 	//Render To Quad
 	renderQuad();
+}
+
+void renderFrustum()
+{
+
 }
