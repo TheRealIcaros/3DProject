@@ -373,23 +373,24 @@ void processInput(GLFWwindow *window)
 		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(frustumCamera.getLookAtVector(), frustumCamera.getUpVector())));
 	}
 		
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && cameraSwaped != true)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && cameraSwaped != true)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);
 
 
 	//Change between the two cameras
 	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
 	{
-		std::cout << "Camera swaped" << std::endl;
-
 		if (cameraSwaped == false)
 			cameraSwaped = true;	// Frustum camera
-		else
-			cameraSwaped = false;	// "Original" camera
 	}
+	if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
+	{
 
+		if (cameraSwaped == true)// "Original" camera
+			cameraSwaped = false;
+	}
 }
 
 void Render()
@@ -424,9 +425,10 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	lastX = xpos;
 	lastY = ypos;
 
-	if (cameraSwaped == true)
-		yoffset = 0.0f;
-
+	if (cameraSwaped == true)	// If we looking throu the top-down camera,
+		yoffset = 0.0f;		   //we can't move the view-frustum of the other camera up and down
+	
+	
 	camera.mouseMovement((float)xoffset, (float)yoffset);
 }
 
