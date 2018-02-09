@@ -35,6 +35,8 @@ void renderLightingPass();
 //Shader
 ShaderCreater geometryPass;
 ShaderCreater lightingPass;
+ShaderCreater gauss;
+ShaderCreater glow;
 
 //Lights
 struct Light
@@ -69,9 +71,14 @@ GLuint UBO = 0;
 GLuint textureID;
 GLuint textureID2;
 
+
 //gbuffer
 unsigned int gBuffer, gPosition, gNormal, gColorSpec;
 unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+
+// Glow textures
+unsigned int lightingBuffer, original, blurred;
+unsigned int lightAttachments[2] = { GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4 };
 
 //My Camera
 Camera camera;
@@ -158,6 +165,8 @@ int main()
 	//Create Shaders
 	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
+	gauss.createShaders("GaussVS", "NULL", "GaussFS");
+	glow.createShaders("GlowVS", "NULL", "GlowFS");
 
 	//Create gbuffers
 	createGbuffer(); 
@@ -465,6 +474,27 @@ void createGbuffer()
 	glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, WIDTH, HEIGHT);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+
+	{ // Glow
+		glGenFramebuffers(1, &lightingBuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, lightingBuffer);
+
+		glGenTextures(1, &original);
+		glBindTexture(GL_TEXTURE_2D, original);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, original, 0);
+
+		glGenTextures(1, &blurred);
+		glBindTexture(GL_TEXTURE_2D, blurred);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, blurred, 0);
+
+		glDrawBuffers(2, lightAttachments);
+	}
 }
 
 void renderQuad()
