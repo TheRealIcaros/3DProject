@@ -383,7 +383,10 @@ void processInput(GLFWwindow *window)
 	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
 	{
 		if (cameraSwaped == false)
+		{
 			cameraSwaped = true;	// Frustum camera
+			frustumCamera.setCameraPosition(camera.getPosition().x, (camera.getPosition().y + 10.0f), camera.getPosition().z);
+		}
 	}
 	if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
 	{

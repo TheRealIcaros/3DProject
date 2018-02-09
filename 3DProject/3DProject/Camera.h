@@ -31,6 +31,7 @@ public:
 	~Camera();
 	void setLookAtVector(glm::vec3 lookAtVector);
 	void moveCameraPosition(glm::vec3 movement);
+	void setCameraPosition(float xaxis, float yaxis, float zaxis);
 	void mouseMovement(float xoffset, float yoffset);
 
 	// - GET/SET

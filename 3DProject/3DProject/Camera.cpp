@@ -39,8 +39,17 @@ void Camera::setLookAtVector(glm::vec3 lookAtVector)
 
 void Camera::moveCameraPosition(glm::vec3 movement)
 {
-	this->cameraPosition += movement;
-	this->View = glm::lookAt(this->cameraPosition, this->cameraPosition + this->lookAtVector, this->upVector);
+	this->cameraPosition += movement; //Update the camera position
+
+	this->View = glm::lookAt(this->cameraPosition, this->cameraPosition + this->lookAtVector, this->upVector); //Update the View-matrix
+}
+
+void Camera::setCameraPosition(float xaxis, float yaxis, float zaxis)
+{
+	this->cameraPosition.x = xaxis; //Set the camera xaxis position
+	this->cameraPosition.y = yaxis; //Set the camera yaxis position
+	this->cameraPosition.z = zaxis; //Set the camera zaxis position
+	this->View = glm::lookAt(this->cameraPosition, this->cameraPosition + this->lookAtVector, this->upVector); //Update the View-matrix
 }
 
 void Camera::mouseMovement(float xoffset, float yoffset)
