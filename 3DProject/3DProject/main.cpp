@@ -580,6 +580,28 @@ void renderLightingPass()
 
 	glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
 
+
+
+	glBindFramebuffer(GL_FRAMEBUFFER, lightingBuffer);
+
+	glActiveTexture(GL_TEXTURE3);
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "original"), 3);
+	glBindTexture(GL_TEXTURE_2D, original);
+
+	glActiveTexture(GL_TEXTURE4);
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "blurred"), 4);
+	glBindTexture(GL_TEXTURE_2D, blurred);
+
+
+
+
+	glUseProgram(gauss.getShaderProgramID());
+	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+
+
 	//Render To Quad
 	renderQuad();
 }

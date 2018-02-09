@@ -5,8 +5,8 @@ uniform sampler2D gColorSpec;
 
 in vec2 textureCoordinates;
 //out vec4 FragColor;
-layout(location = 0) out vec4 FragColor;
-layout(location = 1) out vec4 BrightColor;
+layout(location = 1) out vec4 FragColor;
+layout(location = 2) out vec4 BrightColor;
 
 
 struct Light {
