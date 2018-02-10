@@ -3,7 +3,6 @@
 
 #include "Defines.h"
 #include <vector>
-#include <assimp\Importer.hpp>
 
 //Own Classes
 #include "ShaderCreater.h"
@@ -15,8 +14,6 @@ struct Vertex
 	glm::vec3 Position;
 	glm::vec3 Normal;
 	glm::vec2 TexCoords;
-	/*glm::vec3 Tangent;
-	glm::vec3 Bitangent;*/
 };
 
 struct Texture
@@ -29,10 +26,11 @@ struct Texture
 class Mesh
 {
 private:
+	glm::vec3 localPosition;
 	unsigned int VAO, VBO, EBO;
 	void setupMesh();
 public:
-	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
+	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures, glm::vec3 startPosition);
 	~Mesh();
 
 	vector<Vertex> vertices;

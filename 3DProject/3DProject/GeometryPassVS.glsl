@@ -1,5 +1,5 @@
 #version 430
-layout (location = 0) in vec3 vertexPosition;
+layout (location = 0) in vec3 vertex_position;
 layout (location = 1) in vec3 vertex_normal;
 layout (location = 2) in vec2 vertex_tex;
 
@@ -18,9 +18,9 @@ void main()
 {
 	UV = vertex_tex;
 
-	FragPos = (World * vec4(vertexPosition, 1.0)).xyz;
+	FragPos = (World * vec4(vertex_position, 1.0)).xyz;
 
 	FragNormal = mat3(World) * vertex_normal;
 
-	gl_Position = (Projection * View * World) * vec4(vertexPosition, 1.0);
+	gl_Position = (Projection * View * World) * vec4(vertex_position, 1.0);
 }

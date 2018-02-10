@@ -36,6 +36,15 @@
     <None Include="GeometryPassFS.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="TerrainFS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="TerrainVS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="TerrainGS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -54,10 +63,13 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Model.cpp">
+      <Filter>#Unused</Filter>
+    </ClCompile>
+    <ClCompile Include="Object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Terrain.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>#Unused</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -76,11 +88,17 @@
     <ClInclude Include="Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Model.h">
+    <ClInclude Include="OBJLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Terrain.h">
+    <ClInclude Include="Object.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>#Unused</Filter>
+    </ClInclude>
+    <ClInclude Include="Terrain.h">
+      <Filter>#Unused</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,14 +1,19 @@
 #include <glad\glad.h>
 #include <crtdbg.h>
-//#include <stb_image.h> //For loading textures and images
 #include <stdio.h>
 
+//MIO@bth.se		Maila om opengl
+
 //Own classes
+#include "Object.h"
 #include "Camera.h"
-#include "ShaderCreater.h"
-#include "Model.h"
-#include "Defines.h"
-#include "Terrain.h"
+//#define STB_IMAGE_IMPLEMENTATION    
+//#include "stb_image.h"
+
+//#include "ShaderCreater.h"
+//#include "Defines.h"
+//#include "Model.h"
+//#include "Terrain.h"
 
 //3D-math
 //#include <glm.hpp>
@@ -30,10 +35,12 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void createUBO();
 void createGbuffer();
 void renderQuad();
+void renderTerrainPass();
 void renderGeometryPass();
 void renderLightingPass();
   
 //Shader
+ShaderCreater terrainPass;
 ShaderCreater geometryPass;
 ShaderCreater lightingPass;
 
@@ -53,10 +60,13 @@ struct Light
 vector<Light> lights;
 
 //Terrain
-Terrain terrain;
+//Terrain terrain;
+
+//Object
+Object objects; 
 
 //Model
-vector<Model> models;
+//vector<Model> models;
 
 //GLuint Variables
 GLuint VBO = 0;
@@ -160,11 +170,15 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 	//Create Shaders
+	//terrainPass.createShaders("TerrainVS", "TerrainGS", "TerrainFS");
 	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 
 	//Create Terrain
-	terrain = Terrain(vec3(0.0, 0.0, 0.0), "../Models/Terrain/heightMap.bmp");
+	//terrain = Terrain(vec3(-5, -5.0, -5), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/heightMap.jpg");
+
+	//Object
+	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", "../Models/Box/CubeTest.png", vec3(0.0, 0.0, 0.0));
 
 	//Create gbuffers
 	createGbuffer(); 
@@ -176,13 +190,11 @@ int main()
 	//setTriangleData();
 
 	//Add lights
-	lights.push_back(Light(glm::vec3(0.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 1.0)));
-	lights.push_back(Light(glm::vec3(0.0, 0.0, 5.0), glm::vec3(0.0, 1.0, 0.0)));
-	lights.push_back(Light(glm::vec3(5.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0)));
+	lights.push_back(Light(glm::vec3(5.0, 5.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
 
 	//Add Models
-	models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));
-	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 0.0)));
+	//models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));
+	/*models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 0.0)));*/
 
 	//Cursor Disabled/non-visible
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -346,10 +358,6 @@ void setTriangleData()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
-
-	//loadTexture("../Textures/durkplat.bmp", textureID);
-	//loadBMPTexture("../Textures/durkplat.bmp", textureID);
-	//loadBMPTexture("../Textures/ball.bmp", textureID2);
 }
 
 void processInput(GLFWwindow *window)
@@ -393,6 +401,9 @@ void Render()
 	//Update Inputs
 	gpuBufferData.View = camera.getView();
 
+	//0.5 Terrain Pass
+	//renderTerrainPass();
+	
 	//1. Geometry Pass
 	renderGeometryPass();
 
@@ -503,6 +514,22 @@ void renderQuad()
 	glBindVertexArray(0);
 }
 
+void renderTerrainPass()
+{
+	//Use TerrainPass Shader Program
+	glUseProgram(terrainPass.getShaderProgramID());
+	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	//Bind UBO for sending GPU data to TerrainPass Program
+	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
+
+	//terrain.Draw(terrainPass);
+
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void renderGeometryPass()
 {
 	//Use GeometryPass Shader Program
@@ -510,17 +537,16 @@ void renderGeometryPass()
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glUniformMatrix4fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "View"), 1, GL_FALSE, &gpuBufferData.View[0][0]);
-
 	//Bind UBO for sending GPU data to GeometryPass Program
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
-	
-	terrain.Draw(geometryPass);
-	for (int i = 0; i < models.size(); i++)
+
+	objects.Draw(geometryPass);
+
+	/*for (int i = 0; i < models.size(); i++)
 	{
 		models[i].Draw(geometryPass);
-	}
+	}*/
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

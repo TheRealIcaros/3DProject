@@ -15,28 +15,32 @@ private:
 	vec3 terrainPosition;
 
 	float maxHeight;
-	float minHeight;
 
+	string texturePath;
 	unsigned int heightMapID;
 	unsigned char* imageData;
 	int imageHeight;	//X-axis
 	int imageWidth;		//Z-axis
 
 	vector<vec3> vertices;
+	vector<vec3> normals;
 	vector<unsigned int> indices;
 
 	Model terrain;
 public:
 	Terrain();
-	Terrain(vec3 startPosition, const char *path);
+	Terrain(vec3 startPosition, const char *heightMapPath, string texturePath);
 	~Terrain();
 
 	unsigned char* loadHeightMap(const char *path);
 	void createTerrain();
-	vec3 calculateNormal(vec3 p0, vec3 p1, vec3 p2);
+	void createNormalMap();
 	void triangulate();
+	float getPixelColor(vec2 pos);
 
+	void sendToModel();
 	void Draw(ShaderCreater shader);
+
 };
 
 #endif // Terrain
