@@ -123,6 +123,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="FrustumFS.glsl" />
+    <None Include="FrustumGS.glsl" />
+    <None Include="FrustumVS.glsl" />
     <None Include="GeometryPassFS.glsl" />
     <None Include="GeometryShader.glsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>

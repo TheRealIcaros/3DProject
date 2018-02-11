@@ -36,6 +36,15 @@
     <None Include="GeometryPassFS.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="FrustumFS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="FrustumVS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="FrustumGS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

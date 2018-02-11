@@ -28,6 +28,7 @@ void renderFrustum();
 //Shader
 ShaderCreater geometryPass;
 ShaderCreater lightingPass;
+ShaderCreater frustumPass;
 
 //Lights
 struct Light
@@ -151,6 +152,7 @@ int main()
 	//Create Shaders
 	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
+	//frustumPass.createShaders("FrustumVS", "FrustumGS", "FrustumFS");
 
 	//Create gbuffers
 	createGbuffer(); 
@@ -167,6 +169,8 @@ int main()
 	models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));
 	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 0.0)));
 	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-10.0, 0.0, 0.0)));
+	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 10.0)));
+	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-10.0, 0.0, -10.0)));
 
 	//Cursor Disabled/non-visible
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -315,12 +319,12 @@ void setTriangleData()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //Adds the vertices-data to said buffer 
 
 
-	GLuint vertexPos = glGetAttribLocation(geometryPass.getShaderProgramID(), "vertexPosition");
+	GLuint vertexPos = glGetAttribLocation(frustumPass.getShaderProgramID(), "vertexPosition");
 
 	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	GLuint texture = glGetAttribLocation(geometryPass.getShaderProgramID(), "vertex_tex");
+	GLuint texture = glGetAttribLocation(frustumPass.getShaderProgramID(), "vertex_tex");
 	glVertexAttribPointer(texture, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	
 	glEnableVertexAttribArray(1);
@@ -583,5 +587,6 @@ void renderLightingPass()
 
 void renderFrustum()
 {
-
+	//glGetFloatv(GL_PROJECRION_MATRIX);
+	
 }
