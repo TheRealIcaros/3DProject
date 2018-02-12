@@ -31,24 +31,35 @@ void createGbuffer();
 void renderQuad();
 void renderGeometryPass();
 void renderLightingPass();
+
+
+void sort();
+
+
+
+
 //void renderHDR();
-//Shader
+	//Shader
 ShaderCreater geometryPass;
 ShaderCreater lightingPass;
+
 //ShaderCreater hdrPass;
-ShaderCreater gaussPass;
-ShaderCreater glowPass;
+//ShaderCreater gaussPass;
+//ShaderCreater glowPass;
+
+using namespace glm;
+
 //Lights
 struct Light
 {
-	Light(glm::vec3 pos, glm::vec3 color)
+	Light(vec3 pos, vec3 color)
 	{
 		lightPos = pos;
 		lightColor = color;
 	}
 
-	glm::vec3 lightPos;
-	glm::vec3 lightColor;
+	vec3 lightPos;
+	vec3 lightColor;
 };
 
 vector<Light> lights;
@@ -83,11 +94,11 @@ unsigned int gBuffer, gPosition, gNormal, gColorSpec;
 unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 
 //lightningbuffer
-unsigned int lightAttach[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+//unsigned int lightAttach[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 
 
 // Glow textures
-unsigned int lightingBuffer, original, blurred;
+//unsigned int lightingBuffer, original, blurred;
 
 
 //My Camera
@@ -176,8 +187,8 @@ int main()
 	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 	//hdrPass.createShaders("hdrVS", "NULL", "hdrFS");
-	gaussPass.createShaders("GaussVS", "NULL", "GaussFS");
-	glowPass.createShaders("glowVS", "NULL", "glowFS");
+	//gaussPass.createShaders("GaussVS", "NULL", "GaussFS");
+	//glowPass.createShaders("glowVS", "NULL", "glowFS");
 
 
 
@@ -217,7 +228,7 @@ int main()
 
 		//Check inputs
 		processInput(window);
-
+		sort();
 		//Render
 		Render();
 
@@ -493,26 +504,26 @@ void createGbuffer()
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, WIDTH, HEIGHT);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
 
-	{ // Glow
-		glGenFramebuffers(1, &lightingBuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, lightingBuffer);
+	//{ // Glow
+	//	glGenFramebuffers(1, &lightingBuffer);
+	//	glBindFramebuffer(GL_FRAMEBUFFER, lightingBuffer);
 
-		glGenTextures(1, &original);
-		glBindTexture(GL_TEXTURE_2D, original);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, original, 0);
+	//	glGenTextures(1, &original);
+	//	glBindTexture(GL_TEXTURE_2D, original);
+	//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, original, 0);
 
-		glGenTextures(1, &blurred);
-		glBindTexture(GL_TEXTURE_2D, blurred);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, blurred, 0);
+	//	glGenTextures(1, &blurred);
+	//	glBindTexture(GL_TEXTURE_2D, blurred);
+	//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, blurred, 0);
 
-		glDrawBuffers(2, lightAttach);
-	}
+	//	glDrawBuffers(2, lightAttach);
+	//}
 }
 
 void renderQuad()
@@ -601,7 +612,7 @@ void renderLightingPass()
 
 
 
-	glBindFramebuffer(GL_FRAMEBUFFER, lightingBuffer);
+	//glBindFramebuffer(GL_FRAMEBUFFER, lightingBuffer);
 
 	//glActiveTexture(GL_TEXTURE3);
 	//glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "original"), 3);
@@ -618,6 +629,30 @@ void renderLightingPass()
 	
 	//Render To Quad
 	renderQuad();
+}
+
+//sort function that crashes on run. Needs to be checked on.
+void sort()
+{
+	if (!models.empty())
+	{
+
+		bool sorted = false;
+
+		while (!sorted)
+		{
+			sorted = true;
+			for (int i = 0; i < models.size(); i++)
+			{
+				if (distance(models[i].getModelPosition(), camera.getPosition()) > distance(models[i + 1].getModelPosition(), camera.getPosition()))
+				{
+					std::swap(models[i], models[i + 1]);
+					sorted = false;
+				}
+			}
+		}
+
+	}
 }
 
 //void renderHDR()

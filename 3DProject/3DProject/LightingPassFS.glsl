@@ -3,10 +3,10 @@ uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gColorSpec;
 
-layout(location = 0) out vec4 FragColor;
+//layout(location = 0) out vec4 FragColor;
 
 in vec2 textureCoordinates;
-//out vec4 FragColor;
+out vec4 FragColor;
 
 struct Light {
 	vec3 Position;
@@ -57,5 +57,4 @@ void main()
 	//FragOut
 	FragColor = vec4(result, 1.0);
 
-	vec4 BlurrTex = FragColor;
 }
