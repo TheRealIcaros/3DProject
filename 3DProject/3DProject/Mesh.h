@@ -17,12 +17,12 @@ struct Vertex
 	vec2 TexCoords;
 };
 
-//struct Texture
-//{
-//	unsigned int id;
-//	string type;
-//	string path;
-//};
+struct Texture
+{
+	unsigned int id;
+	string type;
+	string path;
+};
 
 struct Material
 {
@@ -31,6 +31,7 @@ struct Material
 	unsigned int id;
 	string type;
 	string path;
+
 
 	vec3 colorAmbient;
 	vec3 colorDiffuse;
