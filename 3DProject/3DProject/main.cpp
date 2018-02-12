@@ -18,13 +18,13 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void calculateDeltaTime();
 void processInput(GLFWwindow *window);
 void setTriangleData();
-//void Render();
+void Render();
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void createUBO();
-//void createGbuffer();
-//void renderQuad();
-//void renderGeometryPass();
-//void renderLightingPass();
+void createGbuffer();
+void renderQuad();
+void renderGeometryPass();
+void renderLightingPass();
 void renderFrustum();
 void CreateTexture();
   
@@ -161,6 +161,7 @@ int main()
 	//Test of creating a cube
 	setTriangleData();
 
+	//A temp texture for a cube
 	CreateTexture();
 
 	//Create gbuffers
@@ -170,16 +171,17 @@ int main()
 	createUBO();
 
 	//Add lights
-	/*lights.push_back(Light(glm::vec3(0.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 1.0)));
+	lights.push_back(Light(glm::vec3(0.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 1.0)));
 	lights.push_back(Light(glm::vec3(0.0, 0.0, 5.0), glm::vec3(0.0, 1.0, 0.0)));
-	lights.push_back(Light(glm::vec3(5.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0)));*/
+	lights.push_back(Light(glm::vec3(5.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0)));
 
 	//Add Models
-	//models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));
-	//models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 0.0)));
-	//models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-10.0, 0.0, 0.0)));
-	//models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 10.0)));
-	//models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-10.0, 0.0, -10.0)));
+	/*models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));
+	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 0.0)));
+	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-10.0, 0.0, 0.0)));
+	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 10.0)));
+	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-10.0, 0.0, -10.0)));
+	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, -10.0)));*/
 
 	//Cursor Disabled/non-visible
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -462,23 +464,23 @@ void processInput(GLFWwindow *window)
 	}
 }
 
-//void Render()
-//{
-//	//Background Color
-//	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-//
-//	//Update Inputs
-//	if (cameraSwaped == false)
-//		gpuBufferData.View = camera.getView();
-//	else
-//		gpuBufferData.View = frustumCamera.getView();
-//
-//	//1. Geometry Pass
-//	renderGeometryPass();
-//
-//	//2. Lighting Pass
-//	renderLightingPass();
-//}
+void Render()
+{
+	//Background Color
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+	//Update Inputs
+	if (cameraSwaped == false)
+		gpuBufferData.View = camera.getView();
+	else
+		gpuBufferData.View = frustumCamera.getView();
+
+	//1. Geometry Pass
+	renderGeometryPass();
+
+	//2. Lighting Pass
+	renderLightingPass();
+}
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
@@ -517,135 +519,135 @@ void createUBO()
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
-//void createGbuffer()
-//{
-//	glGenFramebuffers(1, &gBuffer);
-//	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-//
-//	//position color buffer
-//	glGenTextures(1, &gPosition);
-//	glBindTexture(GL_TEXTURE_2D, gPosition);
-//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
-//
-//	//normal color buffer
-//	glGenTextures(1, &gNormal);
-//	glBindTexture(GL_TEXTURE_2D, gNormal);
-//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
-//
-//	//color + specular color buffer
-//	glGenTextures(1, &gColorSpec);
-//	glBindTexture(GL_TEXTURE_2D, gColorSpec);
-//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gColorSpec, 0);
-//
-//	//tell OPENGL which color vi ska använda (av denna framebuffer) for rendering på svenska
-//	//TOP OF THE KOD
-//	glDrawBuffers(3, attachments);
-//	//add djupbufé 
-//
-//	unsigned int rboDepth;
-//	glGenRenderbuffers(1, &rboDepth);
-//	glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-//	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, WIDTH, HEIGHT);
-//	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
-//}
+void createGbuffer()
+{
+	glGenFramebuffers(1, &gBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 
-//void renderQuad()
-//{
-//	if (quadVAO == 0)
-//	{
-//		float quadVertices[] = {
-//			// positions        // texture Coords
-//			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-//			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-//			1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-//			1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-//		};
-//
-//		// Setup plane VAO
-//		glGenVertexArrays(1, &quadVAO);
-//		glGenBuffers(1, &quadVBO);
-//		glBindVertexArray(quadVAO);
-//		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-//		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-//		glEnableVertexAttribArray(0);
-//		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-//		glEnableVertexAttribArray(1);
-//		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-//	}
-//
-//	glBindVertexArray(quadVAO);
-//	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-//	glBindVertexArray(0);
-//}
-//
-//void renderGeometryPass()
-//{
-//	//Use GeometryPass Shader Program
-//	glUseProgram(geometryPass.getShaderProgramID());
-//	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//
-//	glUniformMatrix4fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "View"), 1, GL_FALSE, &gpuBufferData.View[0][0]);
-//
-//	//Bind UBO for sending GPU data to GeometryPass Program
-//	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-//	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
-//		
-//	for (unsigned int i = 0; i < models.size(); i++)
-//	{
-//		models[i].Draw(geometryPass);
-//	}
-//
-//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//}
-//
-//void renderLightingPass()
-//{
-//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//
-//	//Use LightingPass Shader Program
-//	glUseProgram(lightingPass.getShaderProgramID());
-//
-//	//	Bind all gBufferTextures
-//	glActiveTexture(GL_TEXTURE0);
-//	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gPosition"), 0);
-//	glBindTexture(GL_TEXTURE_2D, gPosition);
-//
-//	glActiveTexture(GL_TEXTURE1);
-//	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gNormal"), 1);
-//	glBindTexture(GL_TEXTURE_2D, gNormal);
-//
-//	glActiveTexture(GL_TEXTURE2);
-//	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gColorSpec"), 2);
-//	glBindTexture(GL_TEXTURE_2D, gColorSpec);
-//
-//	//	TODO:(Fix multiple lights and send it to LightingPassFS)
-//	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "nrOfLights"), lights.size());
-//	for (unsigned int i = 0; i < lights.size(); i++)
-//	{
-//		string lightPos = "lights[" + std::to_string(i) + "].Position";
-//		string lightColor = "lights[" + std::to_string(i) + "].Color";
-//
-//		glUniform3fv(glGetUniformLocation(lightingPass.getShaderProgramID(), lightPos.c_str()), 1, &lights[i].lightPos[0]);
-//		glUniform3fv(glGetUniformLocation(lightingPass.getShaderProgramID(), lightColor.c_str()), 1, &lights[i].lightColor[0]);
-//	}
-//	if(cameraSwaped == false)
-//		glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
-//	else
-//		glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), frustumCamera.getPosition().x, frustumCamera.getPosition().y, frustumCamera.getPosition().z);
-//
-//	//Render To Quad
-//	renderQuad();
-//}
+	//position color buffer
+	glGenTextures(1, &gPosition);
+	glBindTexture(GL_TEXTURE_2D, gPosition);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
+
+	//normal color buffer
+	glGenTextures(1, &gNormal);
+	glBindTexture(GL_TEXTURE_2D, gNormal);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+
+	//color + specular color buffer
+	glGenTextures(1, &gColorSpec);
+	glBindTexture(GL_TEXTURE_2D, gColorSpec);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gColorSpec, 0);
+
+	//tell OPENGL which color vi ska använda (av denna framebuffer) for rendering på svenska
+	//TOP OF THE KOD
+	glDrawBuffers(3, attachments);
+	//add djupbufé 
+
+	unsigned int rboDepth;
+	glGenRenderbuffers(1, &rboDepth);
+	glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, WIDTH, HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+}
+
+void renderQuad()
+{
+	if (quadVAO == 0)
+	{
+		float quadVertices[] = {
+			// positions        // texture Coords
+			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+			1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+			1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		};
+
+		// Setup plane VAO
+		glGenVertexArrays(1, &quadVAO);
+		glGenBuffers(1, &quadVBO);
+		glBindVertexArray(quadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	}
+
+	glBindVertexArray(quadVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
+}
+
+void renderGeometryPass()
+{
+	//Use GeometryPass Shader Program
+	glUseProgram(geometryPass.getShaderProgramID());
+	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glUniformMatrix4fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "View"), 1, GL_FALSE, &gpuBufferData.View[0][0]);
+
+	//Bind UBO for sending GPU data to GeometryPass Program
+	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
+		
+	for (unsigned int i = 0; i < models.size(); i++)
+	{
+		models[i].Draw(geometryPass);
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void renderLightingPass()
+{
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	//Use LightingPass Shader Program
+	glUseProgram(lightingPass.getShaderProgramID());
+
+	//	Bind all gBufferTextures
+	glActiveTexture(GL_TEXTURE0);
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gPosition"), 0);
+	glBindTexture(GL_TEXTURE_2D, gPosition);
+
+	glActiveTexture(GL_TEXTURE1);
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gNormal"), 1);
+	glBindTexture(GL_TEXTURE_2D, gNormal);
+
+	glActiveTexture(GL_TEXTURE2);
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gColorSpec"), 2);
+	glBindTexture(GL_TEXTURE_2D, gColorSpec);
+
+	//	TODO:(Fix multiple lights and send it to LightingPassFS)
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "nrOfLights"), lights.size());
+	for (unsigned int i = 0; i < lights.size(); i++)
+	{
+		string lightPos = "lights[" + std::to_string(i) + "].Position";
+		string lightColor = "lights[" + std::to_string(i) + "].Color";
+
+		glUniform3fv(glGetUniformLocation(lightingPass.getShaderProgramID(), lightPos.c_str()), 1, &lights[i].lightPos[0]);
+		glUniform3fv(glGetUniformLocation(lightingPass.getShaderProgramID(), lightColor.c_str()), 1, &lights[i].lightColor[0]);
+	}
+	if(cameraSwaped == false)
+		glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
+	else
+		glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), frustumCamera.getPosition().x, frustumCamera.getPosition().y, frustumCamera.getPosition().z);
+
+	//Render To Quad
+	renderQuad();
+}
 
 void renderFrustum()
 {
@@ -655,10 +657,10 @@ void renderFrustum()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//Update Inputs
-	//	if (cameraSwaped == false)
-	//		gpuBufferData.View = camera.getView();
-	//	else
-	//		gpuBufferData.View = frustumCamera.getView();
+	if (cameraSwaped == false)
+		gpuBufferData.View = camera.getView();
+	else
+		gpuBufferData.View = frustumCamera.getView();
 
 	glUseProgram(frustumPass.getShaderProgramID());
 
