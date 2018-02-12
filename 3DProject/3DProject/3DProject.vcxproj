@@ -144,6 +144,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\stb_image\stb_image.h" />
+    <ClInclude Include="bth_image.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Defines.h" />
     <ClInclude Include="Mesh.h" />
