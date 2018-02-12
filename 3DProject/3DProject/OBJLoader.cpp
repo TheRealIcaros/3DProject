@@ -25,7 +25,6 @@ bool OBJLoader::loadOBJ(const char* path, vector<vec3> &vertices, vector<vec2> &
 	while (true)
 	{
 		char fileLine[512];
-		char *pos = nullptr;
 
 		int result = fscanf(file, "%s", fileLine);
 		if (result == EOF)
@@ -33,8 +32,9 @@ bool OBJLoader::loadOBJ(const char* path, vector<vec3> &vertices, vector<vec2> &
 
 		if (strcmp(fileLine, "mtllib") == 0)
 		{
-			char temp[128], mtl[128];
-			sscanf(fileLine, "%s %s\n", &temp, &mtl);
+			char mtl[128];
+			fscanf(file, "%s", &mtl);
+			cout << endl;
 			//readMTL(mtl);
 		}
 		else if (strcmp(fileLine, "v") == 0)
