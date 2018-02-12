@@ -7,8 +7,6 @@
 //Own classes
 #include "Object.h"
 #include "Camera.h"
-//#define STB_IMAGE_IMPLEMENTATION    
-//#include "stb_image.h"
 
 //#include "ShaderCreater.h"
 //#include "Defines.h"

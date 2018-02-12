@@ -15,7 +15,6 @@ public:
 
 	void loadObject(const char* objPath, const char* texturePath, vec3 startPosition);
 	void Draw(ShaderCreater shader);
-	unsigned int TextureFromFile(const char* texturePath);
 };
 
 #endif // !OBJECT_H
