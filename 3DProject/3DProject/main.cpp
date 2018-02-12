@@ -27,6 +27,7 @@ void renderGeometryPass();
 void renderLightingPass();
 void renderFrustum();
 void CreateTexture();
+void frustum();
   
 //Shader
 ShaderCreater geometryPass;
@@ -154,34 +155,34 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 	//Create Shaders
-	//geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
-	//lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
-	frustumPass.createShaders("FrustumVS", "FrustumGS", "FrustumFS");
+	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
+	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
+	//frustumPass.createShaders("FrustumVS", "FrustumGS", "FrustumFS");
 
 	//Test of creating a cube
-	setTriangleData();
+	//setTriangleData();
 
 	//A temp texture for a cube
-	CreateTexture();
+	//CreateTexture();
 
 	//Create gbuffers
-	//createGbuffer(); 
+	createGbuffer(); 
 
 	//Create UBO
 	createUBO();
 
 	//Add lights
-	lights.push_back(Light(glm::vec3(0.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 1.0)));
-	lights.push_back(Light(glm::vec3(0.0, 0.0, 5.0), glm::vec3(0.0, 1.0, 0.0)));
-	lights.push_back(Light(glm::vec3(5.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0)));
+	lights.push_back(Light(glm::vec3(0.0, 0.0, -5.0), glm::vec3(1.0, 1.0, 1.0)));
+	lights.push_back(Light(glm::vec3(0.0, 0.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
+	lights.push_back(Light(glm::vec3(5.0, 0.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
 
 	//Add Models
-	/*models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));
+	models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));
 	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 0.0)));
 	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-10.0, 0.0, 0.0)));
 	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 10.0)));
 	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-10.0, 0.0, -10.0)));
-	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, -10.0)));*/
+	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, -10.0)));
 
 	//Cursor Disabled/non-visible
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -199,8 +200,8 @@ int main()
 		processInput(window);
 
 		//Render
-		//Render();
-		renderFrustum();
+		Render();
+		//renderFrustum();
 
 		//glViewport(0, 0, WIDTH, HEIGHT);
 		glfwSwapBuffers(window);
@@ -687,4 +688,10 @@ void CreateTexture()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, BTH_IMAGE_WIDTH, BTH_IMAGE_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, BTH_IMAGE_DATA);
+}
+
+void frustum()
+{
+	
+
 }
