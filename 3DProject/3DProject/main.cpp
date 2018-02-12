@@ -176,7 +176,14 @@ int main()
 	//terrain = Terrain(vec3(-5, -5.0, -5), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/heightMap.jpg");
 
 	//Object
-	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", "../Models/Box/CubeTest.png", vec3(0.0, 0.0, 0.0));
+	float spread = 4;
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(i, 0.0, j) * spread);
+		}
+	}
 
 	//Create gbuffers
 	createGbuffer(); 
@@ -189,6 +196,7 @@ int main()
 
 	//Add lights
 	lights.push_back(Light(glm::vec3(5.0, 5.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
+	lights.push_back(Light(glm::vec3(0.0, 5.0, 5.0), glm::vec3(1.0, 0.0, 0.0)));
 
 	//Add Models
 	//models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));

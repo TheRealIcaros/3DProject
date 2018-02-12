@@ -31,11 +31,11 @@ void Mesh::setupMesh()
 }
 
 //Public
-Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures, glm::vec3 startPosition)
+Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Material> materials, vec3 startPosition)
 {
 	this->vertices = vertices;
 	this->indices = indices;
-	this->textures = textures;
+	this->materials = materials;
 
 	this->localPosition = startPosition;
 
@@ -51,7 +51,7 @@ void Mesh::Draw(ShaderCreater shader)
 {
 	unsigned int diffuseNr = 1;
 	unsigned int specularNr = 1;
-	for (unsigned int i = 0; i < textures.size(); i++)
+	for (unsigned int i = 0; i < materials.size(); i++)
 	{
 		//activate proper texture unit before binding
 		glActiveTexture(GL_TEXTURE0 + i);
@@ -59,7 +59,7 @@ void Mesh::Draw(ShaderCreater shader)
 		//retrieve texture number (the N in diffuse_textureN)
 		stringstream ss;
 		string number;
-		string name = textures[i].type;
+		string name = materials[i].type;
 		if (name == "texture_diffuse")
 			ss << diffuseNr++;
 		else if (name == "texture_specular")
@@ -67,7 +67,7 @@ void Mesh::Draw(ShaderCreater shader)
 		number = ss.str();
 
 		shader.setFloat((name + number).c_str(), i);
-		glBindTexture(GL_TEXTURE_2D, textures[i].id);
+		glBindTexture(GL_TEXTURE_2D, materials[i].id);
 	}
 
 	//Draw mesh

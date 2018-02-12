@@ -8,17 +8,20 @@ OBJLoader::~OBJLoader()
 {
 }
 
-bool OBJLoader::loadOBJ(const char* path, vector<vec3> &vertices, vector<vec2> &uvs, vector<vec3> &normals)
+bool OBJLoader::loadOBJ(const char* objPath, vector<vec3> &vertices, vector<vec2> &uvs, vector<vec3> &normals, vector<Material> &materials)
 {
+	string directory = objPath;
+	directory = directory.substr(0, directory.find_last_of("/") + 1);
+
 	vector<unsigned int> vertexIndices, uvIndices, normalIndices;
 	vector<vec3> tempVertices;
 	vector<vec2> tempUVs;
 	vector<vec3> tempNormals;
 
-	FILE * file = fopen(path, "r");
+	FILE * file = fopen(objPath, "r");
 	if (file == NULL)
 	{
-		printf("Can't open the file: %s", path);
+		printf("Can't open the file: %s", objPath);
 		return false;
 	}
 
@@ -34,8 +37,7 @@ bool OBJLoader::loadOBJ(const char* path, vector<vec3> &vertices, vector<vec2> &
 		{
 			char mtl[128];
 			fscanf(file, "%s", &mtl);
-			cout << endl;
-			//readMTL(mtl);
+			loadMTL(directory.c_str(), mtl, materials);
 		}
 		else if (strcmp(fileLine, "v") == 0)
 		{
@@ -107,11 +109,82 @@ bool OBJLoader::loadOBJ(const char* path, vector<vec3> &vertices, vector<vec2> &
 		vec3 normal = tempNormals[normalIndex - 1];
 		normals.push_back(normal);
 	}
+
+	return true;
 }
 
-bool OBJLoader::loadMTL()
+bool OBJLoader::loadMTL(const char* path, const char* mtlFile, vector<Material> &materials)
 {
-	return false;
+	string mtlPath = (string)path + (string)mtlFile;
+	FILE * file = fopen(mtlPath.c_str(), "r");
+	if (file == NULL)
+	{
+		printf("Can't open the file: %s", mtlFile);
+		return false;
+	}
+
+	Material tempMaterial;
+	tempMaterial.path = (string)path;
+	tempMaterial.type = "texture_diffuse";
+
+	while (true)
+	{
+		char fileLine[512];
+
+		int result = fscanf(file, "%s", fileLine);
+		if (result == EOF)
+		{
+			if (tempMaterial.name != "")
+				materials.push_back(tempMaterial);
+			break;
+		}
+
+		if (strcmp(fileLine, "newmtl") == 0)
+		{
+			if (tempMaterial.name != "")
+			{
+				materials.push_back(tempMaterial);
+				tempMaterial.name = "";
+			}
+
+			char temp[128];
+			fscanf(file, "%s", &temp);
+			tempMaterial.name = temp;
+		} 
+		else if (strcmp(fileLine, "Ns") == 0)
+		{
+			float temp;
+			fscanf(file, "%f", &temp);
+			tempMaterial.specularExponent = temp;
+		}
+		else if (strcmp(fileLine, "Ka") == 0)
+		{
+			vec3 temp;
+			fscanf(file, "%f %f %f", &temp.x, &temp.y, &temp.z);
+			tempMaterial.colorAmbient = temp;
+		}
+		else if (strcmp(fileLine, "Kd") == 0)
+		{
+			vec3 temp;
+			fscanf(file, "%f %f %f", &temp.x, &temp.y, &temp.z);
+			tempMaterial.colorDiffuse = temp;
+		}
+		else if (strcmp(fileLine, "Ks") == 0)
+		{
+			vec3 temp;
+			fscanf(file, "%f %f %f", &temp.x, &temp.y, &temp.z);
+			tempMaterial.colorSpecular = temp;
+		}
+		else if (strcmp(fileLine, "map_Kd") == 0)
+		{
+			char name[128];
+			fscanf(file, "%s", &name);
+			string png = (string)path + (string)name;
+			tempMaterial.id = TextureFromFile(png.c_str());
+		}
+	}
+
+	return true;
 }
 
 unsigned int OBJLoader::TextureFromFile(const char* texturePath)

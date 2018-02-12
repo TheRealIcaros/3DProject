@@ -2,10 +2,10 @@
 # Material Count: 1
 
 newmtl None
-Ns 0
-Ka 0.000000 0.000000 0.000000
-Kd 0.8 0.8 0.8
-Ks 0.8 0.8 0.8
+Ns 1
+Ka 1.000000 0.500000 0.250000
+Kd 0.4 0.8 0.4
+Ks 0.8 0.4 0.8
 d 1
 illum 2
 map_Kd CubeTest.png

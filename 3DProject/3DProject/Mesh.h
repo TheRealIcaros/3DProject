@@ -8,34 +8,49 @@
 #include "ShaderCreater.h"
 
 using namespace std;
+using namespace glm;
 
 struct Vertex
 {
-	glm::vec3 Position;
-	glm::vec3 Normal;
-	glm::vec2 TexCoords;
+	vec3 Position;
+	vec3 Normal;
+	vec2 TexCoords;
 };
 
-struct Texture
+//struct Texture
+//{
+//	unsigned int id;
+//	string type;
+//	string path;
+//};
+
+struct Material
 {
+	string name;
+
 	unsigned int id;
 	string type;
 	string path;
+
+	vec3 colorAmbient;
+	vec3 colorDiffuse;
+	vec3 colorSpecular;
+	float specularExponent;
 };
 
 class Mesh
 {
 private:
-	glm::vec3 localPosition;
+	vec3 localPosition;
 	unsigned int VAO, VBO, EBO;
 	void setupMesh();
 public:
-	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures, glm::vec3 startPosition);
+	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Material> materials, vec3 startPosition);
 	~Mesh();
 
 	vector<Vertex> vertices;
 	vector<unsigned int> indices;
-	vector<Texture> textures;
+	vector<Material> materials;
 
 	void Draw(ShaderCreater shader);
 };

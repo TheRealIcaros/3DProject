@@ -13,7 +13,7 @@ public:
 	Object();
 	~Object();
 
-	void loadObject(const char* objPath, const char* texturePath, vec3 startPosition);
+	void loadObject(const char* objPath, vec3 startPosition);
 	void Draw(ShaderCreater shader);
 };
 
