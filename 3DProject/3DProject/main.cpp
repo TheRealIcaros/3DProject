@@ -33,12 +33,13 @@ void createLightBuffer();
 void renderQuad();
 void renderGeometryPass();
 void renderLightingPass();
+void renderBlurPass();
 void renderMergePass();
 
 //Shader
 ShaderCreater geometryPass;
 ShaderCreater lightingPass;
-//ShaderCreater gaussPass;
+ShaderCreater gaussPass;
 ShaderCreater mergePass;
 
 //Lights
@@ -81,10 +82,8 @@ unsigned int gBuffer, gPosition, gNormal, gColorSpec;
 //lightbuffer
 unsigned int lBuffer, lColor, lGlow;
 // Glow textures
-unsigned int pingPongFBO[2], pingPongBuff[2], original, blurred;
+unsigned int pingPongFBO[2], pingPongBuff[2];
 
-//exposure
-float exposure = 1.0f;
 
 //My Camera
 Camera camera;
@@ -171,7 +170,7 @@ int main()
 	//Create Shaders
 	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
-	//gauss.createShaders("GaussVS", "NULL", "GaussFS");
+	gaussPass.createShaders("GaussVS", "NULL", "GaussFS");
 	mergePass.createShaders("MergeVS", "NULL", "MergeFS");
 
 	//Create buffers
@@ -189,7 +188,12 @@ int main()
 	lights.push_back(Light(glm::vec3(0.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 1.0)));
 	lights.push_back(Light(glm::vec3(0.0, 0.0, 5.0), glm::vec3(0.0, 1.0, 0.0)));
 	lights.push_back(Light(glm::vec3(5.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0)));
-
+	lights.push_back(Light(glm::vec3(0.0, 5.0, 0.0), glm::vec3(1.0, 0.0, 0.0)));
+	lights.push_back(Light(glm::vec3(0.0, 5.0, 0.0), glm::vec3(1.0, 0.0, 0.0)));
+	lights.push_back(Light(glm::vec3(0.0, 5.0, 0.0), glm::vec3(1.0, 0.0, 0.0)));
+	lights.push_back(Light(glm::vec3(0.0, 5.0, 0.0), glm::vec3(1.0, 0.0, 0.0)));
+	lights.push_back(Light(glm::vec3(0.0, 5.0, 0.0), glm::vec3(10.0, 10.0, 10.0)));
+	
 	//Add Models
 	models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));
 	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 0.0)));
@@ -410,7 +414,7 @@ void Render()
 	renderLightingPass();
 
 	//3. Blurr Pass
-	// 
+	renderBlurPass();
 
 	//4. Merge Pass
 	renderMergePass();
@@ -497,7 +501,7 @@ void createGaussBuffer()
 	// Glow
 	glGenFramebuffers(2, pingPongFBO);
 	glGenTextures(2, pingPongBuff);
-	for (unsigned int i = 0; i  < 2; i++)
+	for (unsigned int i = 0; i < 2; i++)
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, pingPongFBO[i]);
 		glBindTexture(GL_TEXTURE_2D, pingPongBuff[i]);
@@ -510,8 +514,6 @@ void createGaussBuffer()
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingPongBuff[i], 0);
 	}
-	
-	
 }
 
 void createLightBuffer()
@@ -631,6 +633,29 @@ void renderLightingPass()
 }
 
 //blur pass
+void renderBlurPass()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, pingPongFBO[0]);
+	glUseProgram(gaussPass.getShaderProgramID());
+	glUniform1i(glGetUniformLocation(gaussPass.getShaderProgramID(), "input"), 0);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, lGlow);
+	
+	glUniform1i(glGetUniformLocation(gaussPass.getShaderProgramID(), "horizontal"), 0);
+
+	renderQuad();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, pingPongFBO[1]);
+	glBindTexture(GL_TEXTURE_2D, pingPongBuff[0]);
+	glUniform1i(glGetUniformLocation(gaussPass.getShaderProgramID(), "horizontal"), 1);
+
+	renderQuad();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
+}
+
 
 void renderMergePass()
 {
@@ -639,17 +664,12 @@ void renderMergePass()
 	glUseProgram(mergePass.getShaderProgramID());
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, gNormal);
+	glBindTexture(GL_TEXTURE_2D, lColor);
 	glUniform1i(glGetUniformLocation(mergePass.getShaderProgramID(), "lColor"), 0);
 
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, lGlow);
+	glBindTexture(GL_TEXTURE_2D, pingPongBuff[1]);
 	glUniform1i(glGetUniformLocation(mergePass.getShaderProgramID(), "lGlow"), 1);
 
-
-	glUniform1f(glGetUniformLocation(mergePass.getShaderProgramID(), "exposure"), exposure);
-
-
 	renderQuad();
-
 }
