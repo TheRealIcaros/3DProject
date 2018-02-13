@@ -42,10 +42,10 @@
     <None Include="GaussFS.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="GlowVS.glsl">
+    <None Include="MergeVS.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="GlowFS.glsl">
+    <None Include="MergeFS.glsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

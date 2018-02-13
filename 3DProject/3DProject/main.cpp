@@ -28,15 +28,18 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 //GLuint loadBMPTexture(const char* texturePath, GLuint &textureID);
 void createUBO();
 void createGbuffer();
+void createGaussBuffer();
+void createLightBuffer();
 void renderQuad();
 void renderGeometryPass();
 void renderLightingPass();
-  
+void renderMergePass();
+
 //Shader
 ShaderCreater geometryPass;
 ShaderCreater lightingPass;
-ShaderCreater gauss;
-ShaderCreater glow;
+//ShaderCreater gaussPass;
+ShaderCreater mergePass;
 
 //Lights
 struct Light
@@ -74,11 +77,14 @@ GLuint textureID2;
 
 //gbuffer
 unsigned int gBuffer, gPosition, gNormal, gColorSpec;
-unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 
+//lightbuffer
+unsigned int lBuffer, lColor, lGlow;
 // Glow textures
-unsigned int lightingBuffer, original, blurred;
-unsigned int lightAttachments[2] = { GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4 };
+unsigned int pingPongFBO[2], pingPongBuff[2], original, blurred;
+
+//exposure
+float exposure = 1.0f;
 
 //My Camera
 Camera camera;
@@ -165,12 +171,14 @@ int main()
 	//Create Shaders
 	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
-	gauss.createShaders("GaussVS", "NULL", "GaussFS");
-	glow.createShaders("GlowVS", "NULL", "GlowFS");
+	//gauss.createShaders("GaussVS", "NULL", "GaussFS");
+	mergePass.createShaders("MergeVS", "NULL", "MergeFS");
 
-	//Create gbuffers
-	createGbuffer(); 
-
+	//Create buffers
+	createGbuffer();
+	createLightBuffer();
+	createGaussBuffer();
+	
 	//Create UBO
 	createUBO();
 
@@ -400,6 +408,12 @@ void Render()
 
 	//2. Lighting Pass
 	renderLightingPass();
+
+	//3. Blurr Pass
+	// 
+
+	//4. Merge Pass
+	renderMergePass();
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -440,6 +454,7 @@ void createGbuffer()
 	glGenFramebuffers(1, &gBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 
+
 	//position color buffer
 	glGenTextures(1, &gPosition);
 	glBindTexture(GL_TEXTURE_2D, gPosition);
@@ -466,6 +481,7 @@ void createGbuffer()
 
 	//tell OPENGL which color vi ska använda (av denna framebuffer) for rendering på svenska
 	//TOP OF THE KOD
+	unsigned int attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 	glDrawBuffers(3, attachments);
 	//add djupbufé 
 
@@ -474,27 +490,54 @@ void createGbuffer()
 	glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, WIDTH, HEIGHT);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+}
 
-	{ // Glow
-		glGenFramebuffers(1, &lightingBuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, lightingBuffer);
+void createGaussBuffer()
+{
+	// Glow
+	glGenFramebuffers(2, pingPongFBO);
+	glGenTextures(2, pingPongBuff);
+	for (unsigned int i = 0; i  < 2; i++)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, pingPongFBO[i]);
+		glBindTexture(GL_TEXTURE_2D, pingPongBuff[i]);
 
-		glGenTextures(1, &original);
-		glBindTexture(GL_TEXTURE_2D, original);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, original, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-		glGenTextures(1, &blurred);
-		glBindTexture(GL_TEXTURE_2D, blurred);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, blurred, 0);
-
-		glDrawBuffers(2, lightAttachments);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingPongBuff[i], 0);
 	}
+	
+	
+}
+
+void createLightBuffer()
+{
+	glGenFramebuffers(1, &lBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, lBuffer);
+
+
+	//position color buffer
+	glGenTextures(1, &lColor);
+	glBindTexture(GL_TEXTURE_2D, lColor);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, lColor, 0);
+
+	//normal color buffer
+	glGenTextures(1, &lGlow);
+	glBindTexture(GL_TEXTURE_2D, lGlow);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, lGlow, 0);
+
+	unsigned int attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, attachments);
 }
 
 void renderQuad()
@@ -549,6 +592,7 @@ void renderGeometryPass()
 
 void renderLightingPass()
 {
+	glBindFramebuffer(GL_FRAMEBUFFER, lBuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//Use LightingPass Shader Program
@@ -556,16 +600,16 @@ void renderLightingPass()
 
 	//	Bind all gBufferTextures
 	glActiveTexture(GL_TEXTURE0);
-	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gPosition"), 0);
 	glBindTexture(GL_TEXTURE_2D, gPosition);
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gPosition"), 0);
 
 	glActiveTexture(GL_TEXTURE1);
-	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gNormal"), 1);
 	glBindTexture(GL_TEXTURE_2D, gNormal);
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gNormal"), 1);
 
 	glActiveTexture(GL_TEXTURE2);
-	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gColorSpec"), 2);
 	glBindTexture(GL_TEXTURE_2D, gColorSpec);
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gColorSpec"), 2);
 
 	//	TODO:(Fix multiple lights and send it to LightingPassFS)
 	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "nrOfLights"), lights.size());
@@ -580,28 +624,32 @@ void renderLightingPass()
 
 	glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
 
-
-
-	glBindFramebuffer(GL_FRAMEBUFFER, lightingBuffer);
-
-	glActiveTexture(GL_TEXTURE3);
-	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "original"), 3);
-	glBindTexture(GL_TEXTURE_2D, original);
-
-	glActiveTexture(GL_TEXTURE4);
-	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "blurred"), 4);
-	glBindTexture(GL_TEXTURE_2D, blurred);
-
-
-
-
-	glUseProgram(gauss.getShaderProgramID());
-	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-
-
 	//Render To Quad
 	renderQuad();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+//blur pass
+
+void renderMergePass()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glUseProgram(mergePass.getShaderProgramID());
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, gNormal);
+	glUniform1i(glGetUniformLocation(mergePass.getShaderProgramID(), "lColor"), 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, lGlow);
+	glUniform1i(glGetUniformLocation(mergePass.getShaderProgramID(), "lGlow"), 1);
+
+
+	glUniform1f(glGetUniformLocation(mergePass.getShaderProgramID(), "exposure"), exposure);
+
+
+	renderQuad();
+
 }

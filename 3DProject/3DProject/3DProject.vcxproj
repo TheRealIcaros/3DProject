@@ -129,11 +129,11 @@
     <None Include="GeometryShader.glsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </None>
-    <None Include="GlowFS.glsl" />
-    <None Include="GlowVS.glsl" />
     <None Include="LightingPassFS.glsl" />
     <None Include="LightingPassVS.glsl" />
     <None Include="GeometryPassVS.glsl" />
+    <None Include="MergeFS.glsl" />
+    <None Include="MergeVS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Include\glad\src\glad.c" />

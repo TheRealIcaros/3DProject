@@ -5,8 +5,8 @@ uniform sampler2D gColorSpec;
 
 in vec2 textureCoordinates;
 //out vec4 FragColor;
-layout(location = 1) out vec4 FragColor;
-layout(location = 2) out vec4 BrightColor;
+layout(location = 0) out vec4 lColor;
+layout(location = 1) out vec4 lGlow;
 
 
 struct Light {
@@ -53,13 +53,17 @@ void main()
 	}
 
 	//FragOut
-	FragColor = vec4(result, 1.0);
+	lColor = vec4(result, 1.0);
 
-	float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-	if (brightness >= 0.5)
+	
+	float brightness = dot(lColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+	if (brightness > 1.0)
 	{
-		BrightColor = vec4(FragColor.rgb, 1.0);
+		lGlow = vec4(lColor.rgb, 1.0);
 	}
 	else
-		BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
+	{
+		lGlow = vec4(0.0, 0.0, 0.0, 1.0);
+	}
+
 }
