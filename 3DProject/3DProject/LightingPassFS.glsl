@@ -47,7 +47,7 @@ void main()
 		reflectDir = reflect(lightDir, Normal);
 
 		//Diffuse Light
-		vec3 diffuse = max(dot(Normal, -lightDir), 0.0) * Color * lights[i].Color;
+		vec3 diffuse = max(dot(Normal, -lightDir), 0.0) * (Color * material.diffuse) * lights[i].Color;
 
 		//Specular Light
 		float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
