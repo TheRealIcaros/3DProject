@@ -27,7 +27,7 @@ in vec3 colorOut[];
 out vec3 inColor;
 out vec4 normal;
 out vec4 worldPos;
-
+//https://stackoverflow.com/questions/44198886/how-to-draw-camera-frustum-using-inverse-view-matrix-in-opengl
 void main()
 {
 	vec3 Normal = vec3(0,0,1);
