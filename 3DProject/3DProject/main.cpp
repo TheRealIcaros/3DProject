@@ -3,6 +3,7 @@
 //#include <stb_image.h> //For loading textures and images
 #include <stdio.h>
 #include <gl\GL.h>
+#include <matrix.hpp>
 //Own classes
 #include "bth_image.h"
 #include "Camera.h"
@@ -81,6 +82,13 @@ bool firstMouse = true;
 double lastX = WIDTH / 2.0f;
 double lastY = HEIGHT / 2.0f;
 
+//Projection Matrix values
+float FOV = 0.45f * PI;
+//float aspectRatio = 640 / 480;
+float aspectRatio = WIDTH / HEIGHT;
+float nearPlane = 0.1f;
+float farPlane = 20.0f;
+
 glm::mat4 WorldMatrix()
 {
 	glm::mat4 World;
@@ -90,10 +98,12 @@ glm::mat4 WorldMatrix()
 
 glm::mat4 ProjectionMatrix()
 {
-	float FOV = 0.45f * PI;
-	float aspectRatio = 640 / 480;
+	//float FOV = 0.45f * PI;
+	//float aspectRatio = 640 / 480;
+	//float nearPlane = 0.1f;
+	//float farPlane = 20.0f;
 
-	glm::mat4 Projection = glm::perspective(FOV, aspectRatio, 0.1f, 20.0f);
+	glm::mat4 Projection = glm::perspective(FOV, aspectRatio, nearPlane, farPlane);
 
 	return Projection;
 }
@@ -157,16 +167,16 @@ int main()
 	//Create Shaders
 	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
-	//frustumPass.createShaders("FrustumVS", "FrustumGS", "FrustumFS");
+	frustumPass.createShaders("FrustumVS", "FrustumGS", "FrustumFS");
 
 	//Test of creating a cube
-	//setTriangleData();
+	setTriangleData();
 
 	//A temp texture for a cube
-	//CreateTexture();
+	CreateTexture();
 
 	//Create gbuffers
-	createGbuffer(); 
+	//createGbuffer(); 
 
 	//Create UBO
 	createUBO();
@@ -199,9 +209,8 @@ int main()
 		//Check inputs
 		processInput(window);
 
-		//Render
+		//Rendering Deferred + Forward(the outlined frustum) if camera swaped
 		Render();
-		//renderFrustum();
 
 		//glViewport(0, 0, WIDTH, HEIGHT);
 		glfwSwapBuffers(window);
@@ -212,6 +221,8 @@ int main()
 	//De-allocate resources
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
+
+	
 
 	glfwTerminate();
 	return 0;
@@ -272,134 +283,132 @@ void calculateDeltaTime()
 
 void setTriangleData()
 {
-	float vertices[] = 
-	{ 
-		//Back Face
-		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-	
-		//Front Face
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	
-		//Left Face
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	
-		//Right Face
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	
-		//Bottom Face
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	
-		//Top Face
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-	};
+	//float vertices[] = 
+	//{ 
+	//	//Back Face
+	//	0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+	//	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+	//	0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	//	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	//	0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	//	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+	//
+	//	//Front Face
+	//	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	//	0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	//	0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	//	0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	//	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+	//	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	//
+	//	//Left Face
+	//	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	//	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	//	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	//	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	//	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	//	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	//
+	//	//Right Face
+	//	0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	//	0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	//	0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	//	0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	//	0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	//	0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	//
+	//	//Bottom Face
+	//	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	//	0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+	//	0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	//	0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	//	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	//	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	//
+	//	//Top Face
+	//	0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	//	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	//	0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	//	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+	//	0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	//	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+	//};
+	//
+	//glGenVertexArrays(1, &VAO);
+	//glGenBuffers(1, &VBO); //Generates (1) buffer with VBO id
+	//
+	//glBindVertexArray(VAO);
+	//
+	//glBindBuffer(GL_ARRAY_BUFFER, VBO); //Binds an array-buffer with VBO 
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //Adds the vertices-data to said buffer 
+	//
+	//
+	//GLuint vertexPos = glGetAttribLocation(frustumPass.getShaderProgramID(), "vertexPosition");
+	//
+	//glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	//glEnableVertexAttribArray(0);
+	//
+	//GLuint texture = glGetAttribLocation(frustumPass.getShaderProgramID(), "vertex_tex");
+	//glVertexAttribPointer(texture, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	//glEnableVertexAttribArray(1);
+	//
+	//
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//glBindVertexArray(0);
+	//
 
+	//
+	struct TriangleVertex
+	{
+		float x, y, z; // pos1
+		float r, g, b; // col
+	};
+	// create the actual data in plane Z = 0
+	TriangleVertex triangleVertices[6] =
+	{
+		// pos and color for each vertex
+		//{ -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f}, //top left
+		{ 0.5f, -0.5f, 0.0f, 1.0f, 0.0, 0.0f }, //bottom right
+		{ 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f }, //top right
+	
+		{ -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f }, //top left
+		{ -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f }, //bottom left
+		{ 0.5f, -0.5f, 0.0f, 1.0f, 0.0f , 0.0f } //bottom right
+	};
+	
+	// Vertex Array Object (VAO) 
 	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO); //Generates (1) buffer with VBO id
-	
+	// bind == enable
 	glBindVertexArray(VAO);
-	
-	glBindBuffer(GL_ARRAY_BUFFER, VBO); //Binds an array-buffer with VBO 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //Adds the vertices-data to said buffer 
-	
-	
-	GLuint vertexPos = glGetAttribLocation(frustumPass.getShaderProgramID(), "vertexPosition");
-	
-	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	// this activates the first and second attributes of this VAO
 	glEnableVertexAttribArray(0);
-	
-	GLuint texture = glGetAttribLocation(frustumPass.getShaderProgramID(), "vertex_tex");
-	glVertexAttribPointer(texture, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 	
+	// create a vertex buffer object (VBO) id
+	glGenBuffers(1, &VBO);
+	// Bind the buffer ID as an ARRAY_BUFFER
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// This "could" imply copying to the GPU immediately, depending on what the driver wants to do...
+	glBufferData(GL_ARRAY_BUFFER, sizeof(triangleVertices), triangleVertices, GL_STATIC_DRAW);
 	
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-	//
-	////loadTexture("../Textures/durkplat.bmp", textureID);
-	////loadBMPTexture("../Textures/durkplat.bmp", textureID);
-	////loadBMPTexture("../Textures/ball.bmp", textureID2);
-
-	//struct TriangleVertex
-	//{
-	//	float x, y, z; // pos1
-	//	float r, g; // col
-	//};
-	//// create the actual data in plane Z = 0
-	//TriangleVertex triangleVertices[6] =
-	//{
-	//	// pos and color for each vertex
-	//	{ -0.5f, 0.5f, 0.0f, 0.0f, 0.0f }, //top left
-	//	{ 0.5f, -0.5f, 0.0f, 1.0f, 1.0 }, //bottom right
-	//	{ 0.5f, 0.5f, 0.0f, 1.0f, 0.0f }, //top right
-
-	//	{ -0.5f, 0.5f, 0.0f, 0.0f, 0.0f }, //top left
-	//	{ -0.5f, -0.5f, 0.0f, 0.0f, 1.0f }, //bottom left
-	//	{ 0.5f, -0.5f, 0.0f, 1.0f, 1.0f } //bottom right
-	//};
-
-	//// Vertex Array Object (VAO) 
-	//glGenVertexArrays(1, &VAO);
-	//// bind == enable
-	//glBindVertexArray(VAO);
-	//// this activates the first and second attributes of this VAO
-	//glEnableVertexAttribArray(0);
-	//glEnableVertexAttribArray(1);
-
-	//// create a vertex buffer object (VBO) id
-	//glGenBuffers(1, &VBO);
-	//// Bind the buffer ID as an ARRAY_BUFFER
-	//glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	//// This "could" imply copying to the GPU immediately, depending on what the driver wants to do...
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(triangleVertices), triangleVertices, GL_STATIC_DRAW);
-
-	//// find out location of input vertex_position in the Vertex Shader 
-	//GLuint vertexPos = glGetAttribLocation(frustumPass.getShaderProgramID(), "vertex_position");
-	//// specify that: the vertex attribute at location "vertexPos", of 3 elements of type FLOAT, 
-	//// not normalized, with STRIDE != 0, starts at offset 0 of the gVertexBuffer (it is the last bound!)
-
-	//if (vertexPos == -1)
-	//{
-	//	OutputDebugStringA("Error, cannot find 'vertex_position' attribute in Vertex shader\n");
-	//	return;
-	//}
-
-	//glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, sizeof(TriangleVertex), (void*)(0));
-
-	//// query where which slot corresponds to the input vertex_color in the Vertex Shader 
-	//GLuint vertexColor = glGetAttribLocation(frustumPass.getShaderProgramID(), "vertex_tex");
-	//// specify that: the vertex attribute "vertex_color", of 3 elements of type FLOAT, not normalized, with STRIDE != 0,
-	////               starts at offset (12 bytes) of the gVertexBuffer 
-	//glVertexAttribPointer(vertexColor, 2, GL_FLOAT, GL_FALSE, sizeof(TriangleVertex), (void*)(sizeof(float) * 3));
+	// find out location of input vertex_position in the Vertex Shader 
+	GLuint vertexPos = glGetAttribLocation(frustumPass.getShaderProgramID(), "vertex_position");
+	// specify that: the vertex attribute at location "vertexPos", of 3 elements of type FLOAT, 
+	// not normalized, with STRIDE != 0, starts at offset 0 of the gVertexBuffer (it is the last bound!)
+	
+	if (vertexPos == -1)
+	{
+		OutputDebugStringA("Error, cannot find 'vertex_position' attribute in Vertex shader\n");
+		return;
+	}
+	
+	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, sizeof(TriangleVertex), (void*)(0));
+	
+	// query where which slot corresponds to the input vertex_color in the Vertex Shader 
+	GLuint vertexColor = glGetAttribLocation(frustumPass.getShaderProgramID(), "vertex_tex");
+	// specify that: the vertex attribute "vertex_color", of 3 elements of type FLOAT, not normalized, with STRIDE != 0,
+	//               starts at offset (12 bytes) of the gVertexBuffer 
+	glVertexAttribPointer(vertexColor, 3, GL_FLOAT, GL_FALSE, sizeof(TriangleVertex), (void*)(sizeof(float) * 3));
 
 }
 
@@ -474,13 +483,19 @@ void Render()
 	if (cameraSwaped == false)
 		gpuBufferData.View = camera.getView();
 	else
+	{
 		gpuBufferData.View = frustumCamera.getView();
 
+		//Rendering forward
+		//renderFrustum();
+	}
+	renderFrustum();
+
 	//1. Geometry Pass
-	renderGeometryPass();
+	//renderGeometryPass();
 
 	//2. Lighting Pass
-	renderLightingPass();
+	//renderLightingPass();
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -653,15 +668,16 @@ void renderLightingPass()
 void renderFrustum()
 {
 	//Set backgroundcolor
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	
+	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.50f, 0.50f, 0.50f, 0.50f);
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//Update Inputs
-	if (cameraSwaped == false)
+	////Update Inputs
+	/*if (cameraSwaped == false)
 		gpuBufferData.View = camera.getView();
 	else
-		gpuBufferData.View = frustumCamera.getView();
+		gpuBufferData.View = frustumCamera.getView();*/
 
 	glUseProgram(frustumPass.getShaderProgramID());
 
@@ -673,7 +689,9 @@ void renderFrustum()
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
 
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glDrawArrays(GL_LINE_STRIP, 0, 5);
+	//glDrawArrays(GL_LINE_STRIP, 0, 36);
+
 }
 
 void CreateTexture()
@@ -692,6 +710,13 @@ void CreateTexture()
 
 void frustum()
 {
-	
+	float projectionZ = nearPlane * tan(FOV * PI / 360);
+	float l = -projectionZ;
+	float r = +projectionZ;
+	float b = -projectionZ * aspectRatio;
+	float t = +projectionZ * aspectRatio;
+	float n = nearPlane;
+	float f = farPlane;
+
 
 }

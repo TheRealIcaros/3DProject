@@ -1,6 +1,6 @@
 #version 430
-layout(triangles) in;
-layout(triangle_strip, max_vertices = 6) out;
+layout(lines) in;
+layout(line_strip, max_vertices = 2) out;
 
 layout(binding = 3, std140) uniform uniformBlock
 {
@@ -17,27 +17,38 @@ vec3 getNormal(vec3 Normal)
 	Normal.x = (U.y * V.z) - (U.z * V.y);
 	Normal.y = (U.z * V.x) - (U.x * V.z);
 	Normal.z = (U.x - V.y) - (U.y - V.x);
-
+	
 	Normal = normalize(Normal);
 
 	return Normal;
 }
 
-in vec2 texOut[];
-out vec2 UV;
+in vec3 colorOut[];
+out vec3 inColor;
 out vec4 normal;
 out vec4 worldPos;
 
 void main()
 {
-	vec3 Normal;
-	Normal = getNormal(Normal);
-	//normal = Normal;
+	vec3 Normal = vec3(0,0,1);
+	//Normal = getNormal(Normal);
 
-	for (int i = 0; i < gl_in.length(); i++)
+	for (int i = 0; i < 3; i++)
 	{
 		gl_Position = (Projection * View * World) * gl_in[i].gl_Position;
-		UV = texOut[i];
+		inColor = colorOut[i];
+
+		normal = World * vec4(Normal, 1.0);
+
+		worldPos = World * gl_in[i].gl_Position;
+		EmitVertex();
+	}
+	EndPrimitive();
+
+	for (int i = 3; i < 6; i++)
+	{
+		gl_Position = (Projection * View * World) * gl_in[i].gl_Position;
+		inColor = colorOut[i];
 
 		normal = World * vec4(Normal, 1.0);
 
@@ -49,7 +60,7 @@ void main()
 	/*for (int i = 0; i < gl_in.length(); i++)
 	{
 		gl_Position = (Projection * View * World) * (gl_in[i].gl_Position + vec4(Normal, 0.0));
-		UV = texOut[i];
+		inColor = colorOut[i];
 
 		normal = World * vec4(Normal, 1.0);
 
