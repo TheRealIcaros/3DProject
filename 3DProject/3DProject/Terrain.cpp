@@ -157,7 +157,6 @@ void Terrain::sendToObject()
 	material.colorSpecular = vec3(0.8, 0.8, 0.8);
 	material.specularExponent = 32;
 
-
 	materials.push_back(material);
 
 	this->terrain = Mesh(outData, this->indices, materials, this->terrainPosition);

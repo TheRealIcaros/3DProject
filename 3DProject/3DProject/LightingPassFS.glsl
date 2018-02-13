@@ -23,7 +23,7 @@ void main()
 	vec3 FragPos = texture(gPosition, textureCoordinates).rgb;
 	vec3 Normal = texture(gNormal, textureCoordinates).rgb;
 	vec3 Color = texture(gColorSpec, textureCoordinates).rgb;
-	vec4 ColorInfo = texture(gColorSpec, textureCoordinates).rgba;
+	vec4 ColorInfo = texture(gColorInfo, textureCoordinates).rgba;
 
 	//Ambient Light
 	float ambient = ColorInfo.x;
@@ -36,20 +36,26 @@ void main()
 	
 	for (int i = 0; i < nrOfLights; i++)
 	{
-		lightDir = -normalize(lights[i].Position - FragPos);
-		reflectDir = reflect(lightDir, Normal);
+		lightDir = normalize(lights[i].Position - FragPos);
+		reflectDir = reflect(-lightDir, Normal);
 
 		//Diffuse Light
-		vec3 diffuse = max(dot(Normal, -lightDir), 0.0) * (Color /** ColorInfo.y*/) * lights[i].Color;
+		vec3 diffuse = (max(dot(Normal, lightDir), 0.0) * Color * ColorInfo.y) * lights[i].Color;
 
 		//Specular Light
-		float spec = pow(max(dot(viewDir, reflectDir), 0.0), 0 /*ColorInfo.a*/);
-		vec3 specular = (spec /** ColorInfo.z*/) * lights[i].Color;
+		float spec = pow(max(dot(viewDir, reflectDir), 0.0), ColorInfo.w);
+		vec3 specular = (spec * ColorInfo.z) * lights[i].Color;
+
+		//Distance
+		float distance = length(lights[i].Position - FragPos);
+		float attenuation = 1.0 / distance;
+		diffuse *= attenuation;
+		specular *= attenuation;
 
 		//Result
-		result += diffuse; // + specular;
+		result += diffuse + specular;
 	}
-
+	
 	//FragOut
 	FragColor = vec4(result, 1.0);
 }
