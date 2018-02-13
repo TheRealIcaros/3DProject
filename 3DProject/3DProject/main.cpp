@@ -631,27 +631,31 @@ void renderLightingPass()
 	renderQuad();
 }
 
-//sort function that crashes on run. Needs to be checked on.
+//sort function that works.
 void sort()
 {
-	if (!models.empty())
+	bool sorted = false;
+	int nrModels = models.size();
+	vector<float> distances(nrModels);
+	vec3 cam_pos = camera.getPosition();
+
+	for (int i = 0; i < nrModels; i++)
 	{
+		distances[i] = distance(cam_pos, models[i].getModelPosition());
+	}
 
-		bool sorted = false;
-
-		while (!sorted)
+	while (!sorted)
+	{
+		sorted = true;
+		for (int i = 0; i < nrModels - 1; i++)
 		{
-			sorted = true;
-			for (int i = 0; i < models.size(); i++)
+			if (distances[i] > distances[i + 1])
 			{
-				if (distance(models[i].getModelPosition(), camera.getPosition()) > distance(models[i + 1].getModelPosition(), camera.getPosition()))
-				{
-					std::swap(models[i], models[i + 1]);
-					sorted = false;
-				}
+				swap(models[i], models[i + 1]);
+				swap(distances[i], distances[i + 1]);
+				sorted = false;
 			}
 		}
-
 	}
 }
 
