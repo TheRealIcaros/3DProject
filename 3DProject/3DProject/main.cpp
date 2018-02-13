@@ -192,13 +192,13 @@ int main()
 	frustumPass.createShaders("FrustumVS", "FrustumGS", "FrustumFS");
 
 	//Test of creating a cube
-	setTriangleData();
+	//setTriangleData();
 
 	//A temp texture for a cube
-	CreateTexture();
+	//CreateTexture();
 
 	//Create gbuffers
-	createGbuffer(); 
+	//createGbuffer(); 
 
 	//Create UBO
 	createUBO();
@@ -234,7 +234,6 @@ int main()
 		//Rendering Deferred + Forward(the outlined frustum) if camera swaped
 		Render();
 
-		//glViewport(0, 0, WIDTH, HEIGHT);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -245,7 +244,6 @@ int main()
 	glDeleteBuffers(1, &VBO);
 
 	
-
 	glfwTerminate();
 	return 0;
 }
@@ -514,10 +512,10 @@ void Render()
 	
 
 	//1. Geometry Pass
-	renderGeometryPass();
+	//renderGeometryPass();
 
 	//2. Lighting Pass
-	renderLightingPass();
+	//renderLightingPass();
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -703,15 +701,17 @@ void renderFrustum()
 
 	glUseProgram(frustumPass.getShaderProgramID());
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, bth_tex);
+	frustum();
+
+	/*glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, bth_tex);*/
 
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
 
-	glDrawArrays(GL_LINE_STRIP, 0, 5);
+	glDrawArrays(GL_LINE_STRIP, 0, 8);
 	//glDrawArrays(GL_LINE_STRIP, 0, 36);
 
 }
@@ -744,5 +744,32 @@ void frustum()
 		verticies[i].z = ff.z / ff.w;
 	}
 
+	// Vertex Array Object (VAO) 
+	glGenVertexArrays(1, &VAO);
+	// bind == enable
+	glBindVertexArray(VAO);
+	// this activates the first and second attributes of this VAO
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+
+	// create a vertex buffer object (VBO) id
+	glGenBuffers(1, &VBO);
+	// Bind the buffer ID as an ARRAY_BUFFER
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// This "could" imply copying to the GPU immediately, depending on what the driver wants to do...
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verticies), verticies, GL_STATIC_DRAW);
+
+	// find out location of input vertex_position in the Vertex Shader 
+	GLuint vertexPos = glGetAttribLocation(frustumPass.getShaderProgramID(), "vertex_position");
+	// specify that: the vertex attribute at location "vertexPos", of 3 elements of type FLOAT, 
+	// not normalized, with STRIDE != 0, starts at offset 0 of the gVertexBuffer (it is the last bound!)
+
+	if (vertexPos == -1)
+	{
+		OutputDebugStringA("Error, cannot find 'vertex_position' attribute in Vertex shader\n");
+		return;
+	}
+
+	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, sizeof(verticies), (void*)(0));
 	
 }

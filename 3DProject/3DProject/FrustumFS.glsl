@@ -1,6 +1,6 @@
 #version 430
 //uniform sampler2D texSampler;
-in vec3 inColor;
+//in vec3 inColor;
 in vec4 normal;
 in vec4 worldPos;
 out vec4 fragment_color;
@@ -16,8 +16,8 @@ void main()
 	float diffuse = clamp(dot(normal.xyz, lightDir), 0, 1);
 
 
-	vec4 mySample = vec4(inColor, 1.0);/*texture(texSampler, vec2(UV.s, UV.t));*/
-	fragment_color = mySample * (ambientStrength + diffuse);
+	//vec4 mySample = vec4(inColor, 1.0);/*texture(texSampler, vec2(UV.s, UV.t));*/
+	fragment_color = vec4(1.0, 0.0, 0.0, 1.0);/*mySample * (ambientStrength + diffuse);*/
 	
 	//fragment_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
