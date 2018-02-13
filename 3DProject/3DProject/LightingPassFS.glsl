@@ -11,6 +11,15 @@ struct Light {
 	vec3 Color;
 };
 
+struct Material {
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+	float shininess;
+};
+
+uniform Material material;
+
 uniform int nrOfLights;
 const int lightNr = 16;		//Maximum of 16 lights in light vector array in CPU!!!
 uniform Light lights[lightNr];
@@ -24,7 +33,7 @@ void main()
 	vec3 Color = texture(gColorSpec, textureCoordinates).rgb;
 
 	//Ambient Light
-	float ambient = 0.2;
+	vec3 ambient = material.ambient;
 
 	//Variables
 	vec3 viewDir = normalize(viewPos - FragPos);
@@ -41,9 +50,8 @@ void main()
 		vec3 diffuse = max(dot(Normal, -lightDir), 0.0) * Color * lights[i].Color;
 
 		//Specular Light
-		float specularStrength = 0.5f;
-		float spec = pow(max(dot(viewDir, reflectDir), 0.0), 64);
-		vec3 specular = spec * specularStrength * lights[i].Color;
+		float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+		vec3 specular = (spec * material.specular) * lights[i].Color;
 
 		//Result
 		result += diffuse + specular;

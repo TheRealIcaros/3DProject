@@ -176,8 +176,8 @@ int main()
 	//terrain = Terrain(vec3(-5, -5.0, -5), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/heightMap.jpg");
 
 	//Object
-	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(1.0, 0.0, 0.0));
-	objects.loadObject("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 0.0));
+	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(2.0, 0.0, 0.0));
+	objects.loadObject("../Models/Box/box.obj", glm::vec3(-2.0, 0.0, 0.0));
 
 	//Create gbuffers
 	createGbuffer(); 
@@ -189,7 +189,7 @@ int main()
 	//setTriangleData();
 
 	//Add lights
-	lights.push_back(Light(glm::vec3(1.0, 0.0, 3.0), glm::vec3(1.0, 1.0, 1.0)));
+	lights.push_back(Light(glm::vec3(0.0, 5.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
 
 	//Add Models
 	//models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));
@@ -569,7 +569,7 @@ void renderLightingPass()
 	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gColorSpec"), 2);
 	glBindTexture(GL_TEXTURE_2D, gColorSpec);
 
-	//	TODO:(Fix multiple lights and send it to LightingPassFS)
+	//Lights
 	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "nrOfLights"), lights.size());
 	for (int i = 0; i < lights.size(); i++)
 	{
@@ -579,6 +579,9 @@ void renderLightingPass()
 		glUniform3fv(glGetUniformLocation(lightingPass.getShaderProgramID(), lightPos.c_str()), 1, &lights[i].lightPos[0]);
 		glUniform3fv(glGetUniformLocation(lightingPass.getShaderProgramID(), lightColor.c_str()), 1, &lights[i].lightColor[0]);
 	}
+
+	//Materials
+	objects.sendMaterials(lightingPass);
 
 	glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
 

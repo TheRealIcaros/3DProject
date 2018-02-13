@@ -49,6 +49,7 @@ bool OBJLoader::loadOBJ(const char* objPath, vector<vec3> &vertices, vector<vec2
 		{
 			vec2 uv;
 			fscanf(file, "%f %f\n", &uv.x, &uv.y);
+			uv.y = 1.0 - uv.y;
 			tempUVs.push_back(uv);
 		}
 		else if (strcmp(fileLine, "vn") == 0)

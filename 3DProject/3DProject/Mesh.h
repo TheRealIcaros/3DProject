@@ -32,7 +32,6 @@ struct Material
 	string type;
 	string path;
 
-
 	vec3 colorAmbient;
 	vec3 colorDiffuse;
 	vec3 colorSpecular;
@@ -54,6 +53,7 @@ public:
 	vector<Material> materials;
 
 	void Draw(ShaderCreater shader);
+	void sendMaterials(ShaderCreater shader)const;
 };
 
 #endif // !MESH_H
