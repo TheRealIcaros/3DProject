@@ -12,6 +12,7 @@
 
 //My Define Values
 #define PI 3.14159265359f
+#define DegreseToRadians PI/180.0f
 #define ROTATION -1.0f
 #define WIDTH (GLint)1280.0f
 #define HEIGHT (GLint)800.0f

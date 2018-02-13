@@ -89,6 +89,28 @@ float aspectRatio = WIDTH / HEIGHT;
 float nearPlane = 0.1f;
 float farPlane = 20.0f;
 
+//Frustum values
+float halfHeight = tanf(DegreseToRadians * (FOV / 2.f));
+float halfWidth = halfHeight * aspectRatio;
+float xNearPlane = halfWidth * nearPlane;
+float xFarPlane = halfWidth * farPlane;
+float yNearPlane = halfHeight * nearPlane;
+float yFarPlane = halfHeight * farPlane;
+
+glm::vec4 faces[8] =
+{
+	{ xNearPlane, yNearPlane,  nearPlane,  1.0f},
+	{-xNearPlane, yNearPlane,  nearPlane,  1.0f },
+	{ xNearPlane, -yNearPlane, nearPlane,  1.0f },
+	{-xNearPlane, -yNearPlane, nearPlane,  1.0f },
+
+	{  xFarPlane, yFarPlane, farPlane,  1.0f },
+	{ -xFarPlane, yFarPlane, farPlane,  1.0f },
+	{  xFarPlane, -yFarPlane, farPlane, 1.0f },
+	{ -xFarPlane, -yFarPlane, farPlane, 1.0f },
+};
+
+
 glm::mat4 WorldMatrix()
 {
 	glm::mat4 World;
@@ -176,7 +198,7 @@ int main()
 	CreateTexture();
 
 	//Create gbuffers
-	//createGbuffer(); 
+	createGbuffer(); 
 
 	//Create UBO
 	createUBO();
@@ -188,7 +210,7 @@ int main()
 
 	//Add Models
 	models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));
-	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 0.0)));
+	//models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 0.0)));
 	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-10.0, 0.0, 0.0)));
 	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 10.0)));
 	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-10.0, 0.0, -10.0)));
@@ -485,17 +507,17 @@ void Render()
 	else
 	{
 		gpuBufferData.View = frustumCamera.getView();
-
+		renderFrustum();
 		//Rendering forward
 		//renderFrustum();
 	}
-	renderFrustum();
+	
 
 	//1. Geometry Pass
-	//renderGeometryPass();
+	renderGeometryPass();
 
 	//2. Lighting Pass
-	//renderLightingPass();
+	renderLightingPass();
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -710,13 +732,17 @@ void CreateTexture()
 
 void frustum()
 {
-	float projectionZ = nearPlane * tan(FOV * PI / 360);
-	float l = -projectionZ;
-	float r = +projectionZ;
-	float b = -projectionZ * aspectRatio;
-	float t = +projectionZ * aspectRatio;
-	float n = nearPlane;
-	float f = farPlane;
+	glm::vec3 verticies[8];
 
+	for (int i=0; i < 8; i++)
+	{
+		//glm::inverse(camera.getView());
 
+		glm::vec4 ff = glm::inverse(camera.getView()) * faces[i];
+		verticies[i].x = ff.x / ff.w;
+		verticies[i].y = ff.y / ff.w;
+		verticies[i].z = ff.z / ff.w;
+	}
+
+	
 }

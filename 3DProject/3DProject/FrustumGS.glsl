@@ -9,19 +9,19 @@ layout(binding = 3, std140) uniform uniformBlock
 	mat4 Projection;
 };
 
-vec3 getNormal(vec3 Normal)
-{
-	vec3 U = (gl_in[1].gl_Position.xyz - gl_in[0].gl_Position.xyz);
-	vec3 V = (gl_in[2].gl_Position.xyz - gl_in[1].gl_Position.xyz);
-
-	Normal.x = (U.y * V.z) - (U.z * V.y);
-	Normal.y = (U.z * V.x) - (U.x * V.z);
-	Normal.z = (U.x - V.y) - (U.y - V.x);
-	
-	Normal = normalize(Normal);
-
-	return Normal;
-}
+//vec3 getNormal(vec3 Normal)
+//{
+//	vec3 U = (gl_in[1].gl_Position.xyz - gl_in[0].gl_Position.xyz);
+//	vec3 V = (gl_in[2].gl_Position.xyz - gl_in[1].gl_Position.xyz);
+//
+//	Normal.x = (U.y * V.z) - (U.z * V.y);
+//	Normal.y = (U.z * V.x) - (U.x * V.z);
+//	Normal.z = (U.x - V.y) - (U.y - V.x);
+//	
+//	Normal = normalize(Normal);
+//
+//	return Normal;
+//}
 
 in vec3 colorOut[];
 out vec3 inColor;
