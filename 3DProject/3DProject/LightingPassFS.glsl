@@ -47,10 +47,10 @@ void main()
 		vec3 specular = (spec * ColorInfo.z) * lights[i].Color;
 
 		//Distance
-		float distance = length(lights[i].Position - FragPos);
-		float attenuation = 1.0 / distance;
-		diffuse *= attenuation;
-		specular *= attenuation;
+		//float distance = length(lights[i].Position - FragPos);
+		//float attenuation = 1.0 / distance;
+		//diffuse *= attenuation;
+		//specular *= attenuation;
 
 		//Result
 		result += diffuse + specular;

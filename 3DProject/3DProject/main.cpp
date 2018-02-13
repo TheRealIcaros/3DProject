@@ -187,7 +187,7 @@ int main()
 	//setTriangleData();
 
 	//Add lights
-	lights.push_back(Light(glm::vec3(0.0, 5.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
+	lights.push_back(Light(glm::vec3(5.0, 5.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
 
 	//Add Models
 	//models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));

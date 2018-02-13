@@ -7,7 +7,7 @@ layout(location = 3) out vec4 gColorInfo;
 uniform sampler2D texture_diffuse1;
 in vec3 FragPos;
 in vec3 FragNormal;
-in vec2 UV;
+in vec2 FragUV;
 
 struct Material {
 	vec3 ambient;
@@ -21,7 +21,7 @@ void main()
 {
 	gPosition = FragPos;
 	gNormal = normalize(FragNormal);
-	gColorSpec.rgb = texture(texture_diffuse1, UV).rgb;
+	gColorSpec.rgb = texture(texture_diffuse1, FragUV).rgb;
 
 	gColorInfo.x = material.ambient.x;
 	gColorInfo.y = material.diffuse.x;

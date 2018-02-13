@@ -12,11 +12,11 @@ layout(binding = 3, std140) uniform uniformBlock
 
 out vec3 FragPos;
 out vec3 FragNormal;
-out vec2 UV;
+out vec2 FragUV;
 
 void main()
 {
-	UV = vertex_tex;
+	FragUV = vertex_tex;
 
 	FragPos = (World * vec4(vertex_position, 1.0)).xyz;
 
