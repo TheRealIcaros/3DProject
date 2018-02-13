@@ -43,11 +43,3 @@ void Object::Draw(ShaderCreater shader)
 		this->meshes[i].Draw(shader);
 	}
 }
-
-void Object::sendMaterials(ShaderCreater shader)const
-{
-	for (int i = 0; i < meshes.size(); i++)
-	{
-		this->meshes[i].sendMaterials(shader);
-	}
-}

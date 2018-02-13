@@ -7,6 +7,7 @@
 //Own classes
 #include "Object.h"
 #include "Camera.h"
+#include "Terrain.h"
 
 //#include "ShaderCreater.h"
 //#include "Defines.h"
@@ -58,13 +59,10 @@ struct Light
 vector<Light> lights;
 
 //Terrain
-//Terrain terrain;
+Terrain terrain;
 
 //Object
 Object objects; 
-
-//Model
-//vector<Model> models;
 
 //GLuint Variables
 GLuint VBO = 0;
@@ -82,16 +80,16 @@ GLuint textureID;
 GLuint textureID2;
 
 //gbuffer
-unsigned int gBuffer, gPosition, gNormal, gColorSpec;
-unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+unsigned int gBuffer, gPosition, gNormal, gColorSpec, gColorInfo;
+unsigned int attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
 
 //My Camera
 Camera camera;
 
 //Pitch/Yaw Properties
 bool firstMouse = true;
-float lastX = 800.0f / 2.0f;
-float lastY = 600.0f / 2.0f;
+float lastX = WIDTH / 2.0f;
+float lastY = HEIGHT / 2.0f;
 
 glm::mat4 WorldMatrix()
 {
@@ -105,7 +103,7 @@ glm::mat4 ProjectionMatrix()
 	float FOV = 0.45f * PI;
 	float aspectRatio = 640 / 480;
 
-	glm::mat4 Projection = glm::perspective(FOV, aspectRatio, 0.1f, 20.0f);
+	glm::mat4 Projection = glm::perspective(FOV, aspectRatio, 0.1f, 200.0f);
 
 	return Projection;
 }
@@ -158,7 +156,7 @@ int main()
 	gladTest();
 	
 	//Set Viewport
-	glViewport(0, 0, 800, 600);
+	glViewport(0, 0, WIDTH, HEIGHT);
 
 	//Activate resize viewport 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -168,12 +166,12 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 	//Create Shaders
-	//terrainPass.createShaders("TerrainVS", "TerrainGS", "TerrainFS");
+	terrainPass.createShaders("TerrainVS", "TerrainGS", "TerrainFS");
 	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 
 	//Create Terrain
-	//terrain = Terrain(vec3(-5, -5.0, -5), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/heightMap.jpg");
+	terrain = Terrain(vec3(0, -15.0, 0), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
 
 	//Object
 	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(2.0, 0.0, 0.0));
@@ -238,7 +236,7 @@ void initiateGLFW()
 
 GLFWwindow *createWindow()
 {
-	GLFWwindow* window = glfwCreateWindow(800, 600, "3D Project", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "3D Project", NULL, NULL);
 	if (window == NULL)
 	{
 		cout << "Failes to create GLFW window" << endl;
@@ -400,7 +398,7 @@ void Render()
 	gpuBufferData.View = camera.getView();
 
 	//0.5 Terrain Pass
-	//renderTerrainPass();
+	renderTerrainPass();
 	
 	//1. Geometry Pass
 	renderGeometryPass();
@@ -463,7 +461,7 @@ void createGbuffer()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
 
-	//color + specular color buffer
+	//color + specular shininess color buffer
 	glGenTextures(1, &gColorSpec);
 	glBindTexture(GL_TEXTURE_2D, gColorSpec);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -471,9 +469,17 @@ void createGbuffer()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gColorSpec, 0);
 
+	//Ambient, Diffuse, Specular och Shininess color buffer
+	glGenTextures(1, &gColorInfo);
+	glBindTexture(GL_TEXTURE_2D, gColorInfo);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gColorInfo, 0);
+
 	//tell OPENGL which color vi ska använda (av denna framebuffer) for rendering på svenska
 	//TOP OF THE KOD
-	glDrawBuffers(3, attachments);
+	glDrawBuffers(4, attachments);
 	//add djupbufé 
 
 	unsigned int rboDepth;
@@ -523,7 +529,7 @@ void renderTerrainPass()
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
 
-	//terrain.Draw(terrainPass);
+	terrain.Draw(terrainPass);
 
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -532,19 +538,14 @@ void renderGeometryPass()
 {
 	//Use GeometryPass Shader Program
 	glUseProgram(geometryPass.getShaderProgramID());
-	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	/*glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);*/
 
 	//Bind UBO for sending GPU data to GeometryPass Program
-	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
+	/*glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);*/
 
 	objects.Draw(geometryPass);
-
-	/*for (int i = 0; i < models.size(); i++)
-	{
-		models[i].Draw(geometryPass);
-	}*/
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -569,6 +570,10 @@ void renderLightingPass()
 	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gColorSpec"), 2);
 	glBindTexture(GL_TEXTURE_2D, gColorSpec);
 
+	glActiveTexture(GL_TEXTURE3);
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gColorInfo"), 3);
+	glBindTexture(GL_TEXTURE_2D, gColorInfo);
+
 	//Lights
 	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "nrOfLights"), lights.size());
 	for (int i = 0; i < lights.size(); i++)
@@ -579,9 +584,6 @@ void renderLightingPass()
 		glUniform3fv(glGetUniformLocation(lightingPass.getShaderProgramID(), lightPos.c_str()), 1, &lights[i].lightPos[0]);
 		glUniform3fv(glGetUniformLocation(lightingPass.getShaderProgramID(), lightColor.c_str()), 1, &lights[i].lightColor[0]);
 	}
-
-	//Materials
-	objects.sendMaterials(lightingPass);
 
 	glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
 

@@ -1,5 +1,4 @@
 #include "Terrain.h"
-//#include <stb_image.h>
 
 Terrain::Terrain()
 {
@@ -8,9 +7,11 @@ Terrain::Terrain()
 
 Terrain::Terrain(vec3 startPosition, const char *heightMapPath, string texturePath)
 {
-	this->maxHeight = 0.01f;
+	this->maxHeight = 0.10f;
+	this->imageScale = 200.0f;
+
 	this->terrainPosition = startPosition;
-	//this->texturePath = texturePath;
+	this->texturePath = texturePath;
 	this->imageData = loadHeightMap(heightMapPath);
 
 	createTerrain();
@@ -24,10 +25,11 @@ Terrain::~Terrain()
 unsigned char* Terrain::loadHeightMap(const char *path)
 {
 	int nrChannels;
-	unsigned char* data = stbi_load(path, &this->imageWidth, &this->imageHeight, &nrChannels, 0);
+	unsigned char* data = SOIL_load_image(path, &this->imageWidth, &this->imageHeight, &nrChannels, 0);
 	if(!data)
 	{
 		std::cout << "Failed to load height map" << endl;
+		SOIL_free_image_data(data);
 		data = NULL;
 	}
 
@@ -53,13 +55,19 @@ void Terrain::createTerrain()
 			position.y = gray;
 			position.z = z;
 			vertices.push_back(position + this->terrainPosition);
+
+			vec2 uv;
+			uv.x = (float)(1.0f / (float)this->imageWidth) * (float)x * this->imageScale;
+			uv.y = (float)(1.0f / (float)this->imageHeight) * (float)z * this->imageScale;
+			this->uvs.push_back(uv);
+			
 			//printf("x: %f, y: %f, z: %f\n", position.x, position.y, position.z);
 		}
 		//printf("\n");
 	}
 	triangulate();
-	createNormalMap();
-	sendToModel();
+	//createNormalMap();
+	sendToObject();
 }
 
 void Terrain::createNormalMap()
@@ -127,19 +135,32 @@ float Terrain::getPixelColor(vec2 pos)
 	return (color.r + color.g + color.b) / 3;
 }
 
-void Terrain::sendToModel()
+void Terrain::sendToObject()
 {
 	vector<Vertex> outData;
 	for (int i = 0; i < vertices.size(); i++)
 	{
 		Vertex temp;
 		temp.Position = vertices[i];
-		temp.Normal = vec3();
-		temp.TexCoords = vec2(0.0, 0.0);
+		temp.Normal = vec3(0.0, 1.0, 0.0);
+		temp.TexCoords = uvs[i];
 		outData.push_back(temp);
 	}
 
-	this->terrain = Model(outData, this->indices);
+	vector<Material> materials;
+	Material material;
+	material.name = "Terrain";
+	material.id = objLoader.TextureFromFile(this->texturePath.c_str());
+	material.type = "texture_diffuse";
+	material.colorAmbient = vec3(0.2, 0.2, 0.2);
+	material.colorDiffuse = vec3(0.8, 0.8, 0.8);
+	material.colorSpecular = vec3(0.8, 0.8, 0.8);
+	material.specularExponent = 32;
+
+
+	materials.push_back(material);
+
+	this->terrain = Mesh(outData, this->indices, materials, this->terrainPosition);
 }
 
 void Terrain::Draw(ShaderCreater shader)

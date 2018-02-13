@@ -2,7 +2,7 @@
 #define TERRAIN_H
 
 #include "ShaderCreater.h"
-#include "Model.h"
+#include "Object.h"
 #include <vector>
 #include "Defines.h"
 
@@ -15,6 +15,7 @@ private:
 	vec3 terrainPosition;
 
 	float maxHeight;
+	float imageScale;
 
 	string texturePath;
 	unsigned int heightMapID;
@@ -24,9 +25,10 @@ private:
 
 	vector<vec3> vertices;
 	vector<vec3> normals;
+	vector<vec2> uvs;
 	vector<unsigned int> indices;
-
-	Model terrain;
+	OBJLoader objLoader;
+	Mesh terrain;
 public:
 	Terrain();
 	Terrain(vec3 startPosition, const char *heightMapPath, string texturePath);
@@ -38,9 +40,8 @@ public:
 	void triangulate();
 	float getPixelColor(vec2 pos);
 
-	void sendToModel();
+	void sendToObject();
 	void Draw(ShaderCreater shader);
-
 };
 
 #endif // Terrain

@@ -15,7 +15,6 @@ public:
 
 	void loadObject(const char* objPath, vec3 startPosition);
 	void Draw(ShaderCreater shader);
-	void sendMaterials(ShaderCreater shader)const;
 };
 
 #endif // !OBJECT_H

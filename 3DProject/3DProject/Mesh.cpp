@@ -31,6 +31,11 @@ void Mesh::setupMesh()
 }
 
 //Public
+Mesh::Mesh()
+{
+
+}
+
 Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Material> materials, vec3 startPosition)
 {
 	this->vertices = vertices;
@@ -65,6 +70,12 @@ void Mesh::Draw(ShaderCreater shader)
 		else if (name == "texture_specular")
 			ss << specularNr++;
 		number = ss.str();
+		
+		//Material Properties
+		glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.ambient"), 1, &materials[i].colorAmbient[0]);
+		glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.diffuse"), 1, &materials[i].colorDiffuse[0]);
+		glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.specular"), 1, &materials[i].colorSpecular[0]);
+		shader.setFloat("material.shininess", materials[i].specularExponent);
 
 		shader.setFloat((name + number).c_str(), i);
 		glBindTexture(GL_TEXTURE_2D, materials[i].id);
@@ -76,16 +87,4 @@ void Mesh::Draw(ShaderCreater shader)
 	glBindVertexArray(0);
 
 	glActiveTexture(GL_TEXTURE0);
-}
-
-void Mesh::sendMaterials(ShaderCreater shader)const
-{
-	for (int i = 0; i < this->materials.size(); i++)
-	{
-		//Material Properties
-		glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.ambient"), 1, &materials[i].colorAmbient[0]);
-		glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.diffuse"), 1, &materials[i].colorDiffuse[0]);
-		glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.specular"), 1, &materials[i].colorSpecular[0]);
-		shader.setFloat("material.shininess", materials[i].specularExponent);
-	}
 }

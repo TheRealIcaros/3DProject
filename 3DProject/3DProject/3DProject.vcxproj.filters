@@ -68,10 +68,10 @@
     <ClCompile Include="Object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Terrain.cpp">
-      <Filter>#Unused</Filter>
-    </ClCompile>
     <ClCompile Include="OBJLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Terrain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -97,11 +97,11 @@
     <ClInclude Include="Model.h">
       <Filter>#Unused</Filter>
     </ClInclude>
-    <ClInclude Include="Terrain.h">
-      <Filter>#Unused</Filter>
-    </ClInclude>
     <ClInclude Include="..\Include\stb_image\stb_image.h">
       <Filter>#Unused</Filter>
+    </ClInclude>
+    <ClInclude Include="Terrain.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

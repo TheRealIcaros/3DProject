@@ -2,6 +2,7 @@
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gColorSpec;
+uniform sampler2D gColorInfo;
 
 in vec2 textureCoordinates;
 out vec4 FragColor;
@@ -10,15 +11,6 @@ struct Light {
 	vec3 Position;
 	vec3 Color;
 };
-
-struct Material {
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
-	float shininess;
-};
-
-uniform Material material;
 
 uniform int nrOfLights;
 const int lightNr = 16;		//Maximum of 16 lights in light vector array in CPU!!!
@@ -31,9 +23,10 @@ void main()
 	vec3 FragPos = texture(gPosition, textureCoordinates).rgb;
 	vec3 Normal = texture(gNormal, textureCoordinates).rgb;
 	vec3 Color = texture(gColorSpec, textureCoordinates).rgb;
+	vec4 ColorInfo = texture(gColorSpec, textureCoordinates).rgba;
 
 	//Ambient Light
-	vec3 ambient = material.ambient;
+	float ambient = ColorInfo.x;
 
 	//Variables
 	vec3 viewDir = normalize(viewPos - FragPos);
@@ -47,14 +40,14 @@ void main()
 		reflectDir = reflect(lightDir, Normal);
 
 		//Diffuse Light
-		vec3 diffuse = max(dot(Normal, -lightDir), 0.0) * (Color * material.diffuse) * lights[i].Color;
+		vec3 diffuse = max(dot(Normal, -lightDir), 0.0) * (Color /** ColorInfo.y*/) * lights[i].Color;
 
 		//Specular Light
-		float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-		vec3 specular = (spec * material.specular) * lights[i].Color;
+		float spec = pow(max(dot(viewDir, reflectDir), 0.0), 0 /*ColorInfo.a*/);
+		vec3 specular = (spec /** ColorInfo.z*/) * lights[i].Color;
 
 		//Result
-		result += diffuse + specular;
+		result += diffuse; // + specular;
 	}
 
 	//FragOut

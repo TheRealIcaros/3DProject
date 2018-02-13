@@ -45,6 +45,7 @@ private:
 	unsigned int VAO, VBO, EBO;
 	void setupMesh();
 public:
+	Mesh();
 	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Material> materials, vec3 startPosition);
 	~Mesh();
 
@@ -53,7 +54,6 @@ public:
 	vector<Material> materials;
 
 	void Draw(ShaderCreater shader);
-	void sendMaterials(ShaderCreater shader)const;
 };
 
 #endif // !MESH_H
