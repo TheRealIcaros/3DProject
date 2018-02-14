@@ -7,7 +7,7 @@ Terrain::Terrain()
 
 Terrain::Terrain(vec3 startPosition, const char *heightMapPath, string texturePath)
 {
-	this->maxHeight = 0.10f;
+	this->maxHeight = 0.02f;
 	this->imageScale = 200.0f;
 
 	this->terrainPosition = startPosition;
@@ -142,7 +142,7 @@ void Terrain::sendToObject()
 	{
 		Vertex temp;
 		temp.Position = vertices[i];
-		temp.Normal = vec3(0.0, 1.0, 0.0);
+		//temp.Normal = vec3(0.0, 1.0, 0.0);
 		temp.TexCoords = uvs[i];
 		outData.push_back(temp);
 	}
@@ -153,8 +153,8 @@ void Terrain::sendToObject()
 	material.id = objLoader.TextureFromFile(this->texturePath.c_str());
 	material.type = "texture_diffuse";
 	material.colorAmbient = vec3(0.2, 0.2, 0.2);
-	material.colorDiffuse = vec3(0.8, 0.8, 0.8);
-	material.colorSpecular = vec3(0.8, 0.8, 0.8);
+	material.colorDiffuse = vec3(0.2, 0.8, 0.8);
+	material.colorSpecular = vec3(0.01, 0.8, 0.8);
 	material.specularExponent = 32;
 
 	materials.push_back(material);
@@ -165,4 +165,20 @@ void Terrain::sendToObject()
 void Terrain::Draw(ShaderCreater shader)
 {
 	this->terrain.Draw(shader);
+}
+
+vector<vector<float>> Terrain::getHeights()const
+{
+	vector<vector<float>> dataOut;
+
+	for (int i = 0; i < this->imageHeight; i++)
+	{
+		dataOut.push_back(vector<float>());
+		for (int j = 0; j < this->imageWidth; j++)
+		{
+			dataOut[i].push_back(vertices[i * this->imageWidth + j].y);
+		}
+	}
+
+	return dataOut;
 }

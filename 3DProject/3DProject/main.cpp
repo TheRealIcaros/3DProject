@@ -6,7 +6,8 @@
 
 //Own classes
 #include "Object.h"
-#include "Camera.h"
+//#include "Camera.h"
+#include "Player.h"
 #include "Terrain.h"
 
 //#include "ShaderCreater.h"
@@ -84,7 +85,7 @@ unsigned int gBuffer, gPosition, gNormal, gColorSpec, gColorInfo;
 unsigned int attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
 
 //My Camera
-Camera camera;
+Player player;
 
 //Pitch/Yaw Properties
 bool firstMouse = true;
@@ -103,7 +104,7 @@ glm::mat4 ProjectionMatrix()
 	float FOV = 0.45f * PI;
 	float aspectRatio = 640 / 480;
 
-	glm::mat4 Projection = glm::perspective(FOV, aspectRatio, 0.1f, 20.0f);
+	glm::mat4 Projection = glm::perspective(FOV, aspectRatio, 0.1f, 200.0f);
 
 	return Projection;
 }
@@ -121,7 +122,7 @@ struct valuesFromCPUToGPU
 };
 
 //The buffer data I send
-valuesFromCPUToGPU gpuBufferData = { World, camera.getView(), Projection };
+valuesFromCPUToGPU gpuBufferData = { World, player.getView(), Projection };
 
 //Deltatime Variables
 struct Time
@@ -171,11 +172,12 @@ int main()
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 
 	//Create Terrain
-	terrain = Terrain(vec3(0, -15.0, 0), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
+	terrain = Terrain(vec3(0, -3.0, 0), "../Models/Terrain/heightMapHill.bmp", "../Models/Terrain/stoneBrick.png");
+	player.setHeights(terrain.getHeights());
 
 	//Object
-	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(2.0, 0.0, 0.0));
-	objects.loadObject("../Models/Box/box.obj", glm::vec3(-2.0, 0.0, 0.0));
+	//objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(2.0, 0.0, 0.0));
+	//objects.loadObject("../Models/Box/box.obj", glm::vec3(-2.0, 0.0, 0.0));
 
 	//Create gbuffers
 	createGbuffer(); 
@@ -187,7 +189,7 @@ int main()
 	//setTriangleData();
 
 	//Add lights
-	lights.push_back(Light(glm::vec3(5.0, 5.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
+	lights.push_back(Light(glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
 
 	//Add Models
 	//models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));
@@ -373,20 +375,34 @@ void processInput(GLFWwindow *window)
 		}
 	}
 
-	//View inputs
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	//View inputs	// Forward and back in camera xyz coord
+	/*if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()));
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()) * -1.0f);
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())) * -1.0f);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())));
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()) * -1.0f);*/
 
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	//new View inputs for walking on terrain
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		vec3 lookAt = player.getLookAtVector();
+		lookAt.y = 0;
+		player.moveCameraPosition((player.getSpeed() * time.deltaTime) * glm::normalize(lookAt));
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		vec3 lookAt = player.getLookAtVector();
+		lookAt.y = 0;
+		player.moveCameraPosition((player.getSpeed() * time.deltaTime) * glm::normalize(lookAt) * -1.0f);
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		player.moveCameraPosition((player.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(player.getLookAtVector(), player.getUpVector())) * -1.0f);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		player.moveCameraPosition((player.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(player.getLookAtVector(), player.getUpVector())));
+
+	/*if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);*/
 }
 
 void Render()
@@ -395,7 +411,7 @@ void Render()
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
 	//Update Inputs
-	gpuBufferData.View = camera.getView();
+	gpuBufferData.View = player.getView();
 
 	//0.5 Terrain Pass
 	renderTerrainPass();
@@ -421,7 +437,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	lastX = xpos;
 	lastY = ypos;
 
-	camera.mouseMovement(xoffset, yoffset);
+	player.mouseMovement(xoffset, yoffset);
 }
 
 void createUBO()
@@ -585,7 +601,7 @@ void renderLightingPass()
 		glUniform3fv(glGetUniformLocation(lightingPass.getShaderProgramID(), lightColor.c_str()), 1, &lights[i].lightColor[0]);
 	}
 
-	glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
+	glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), player.getPosition().x, player.getPosition().y, player.getPosition().z);
 
 	//Render To Quad
 	renderQuad();

@@ -42,6 +42,8 @@ public:
 
 	void sendToObject();
 	void Draw(ShaderCreater shader);
+
+	vector<vector<float>> getHeights()const;
 };
 
 #endif // Terrain

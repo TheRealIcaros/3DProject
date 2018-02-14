@@ -30,10 +30,11 @@ void main()
 
 	for (int i = 0; i < gl_in.length(); i++)
 	{
-		gl_Position = (Projection * View * World) * vec4(GeoPos[i], 1.0);
+		gl_Position = (Projection * View * World) * vec4(gl_in[i].gl_Position.xyz, 1.0);
+
 		FragUV = GeoUV[i];
 		
-		FragNormal = (World * vec4(normal, 0.0)).xyz;
+		FragNormal = (World * vec4(-normal, 0.0)).xyz;
 		
 		FragPos = (World * gl_in[i].gl_Position).xyz;
 

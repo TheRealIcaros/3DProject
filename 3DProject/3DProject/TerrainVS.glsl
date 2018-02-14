@@ -16,7 +16,7 @@ void main()
 {
 	GeoUV = vertex_tex;
 
-	GeoPos = vertex_position;
+	//GeoPos = vertex_position;
 
-	//gl_Position = (Projection * View * World) * vec4(vertex_position, 1.0);
+	gl_Position = vec4(vertex_position, 1.0);
 }
