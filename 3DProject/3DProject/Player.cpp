@@ -55,5 +55,7 @@ float Player::getHeightOfTerrain(float worldX, float worldZ)const
 	float terrainX = worldX - this->camera.getPosition().x;
 	float terrainZ = worldZ - this->camera.getPosition().z;
 
-	float gridSquareSize = this->terrainHeights.size() / this->terrainHeights.size;
+	float gridSquareSize = this->terrainHeights.size() / this->terrainHeights.size();
+
+	return 0.0f;
 }

@@ -27,6 +27,8 @@ private:
 	vector<vec3> normals;
 	vector<vec2> uvs;
 	vector<unsigned int> indices;
+
+
 	OBJLoader objLoader;
 	Mesh terrain;
 public:
@@ -36,7 +38,6 @@ public:
 
 	unsigned char* loadHeightMap(const char *path);
 	void createTerrain();
-	void createNormalMap();
 	void triangulate();
 	float getPixelColor(vec2 pos);
 

@@ -14,7 +14,8 @@ Terrain::Terrain(vec3 startPosition, const char *heightMapPath, string texturePa
 	this->texturePath = texturePath;
 	this->imageData = loadHeightMap(heightMapPath);
 
-	createTerrain();
+	if(this->imageData != NULL)
+		createTerrain();
 }
 
 Terrain::~Terrain()
@@ -26,7 +27,14 @@ unsigned char* Terrain::loadHeightMap(const char *path)
 {
 	int nrChannels;
 	unsigned char* data = SOIL_load_image(path, &this->imageWidth, &this->imageHeight, &nrChannels, 0);
-	if(!data)
+	
+	if (this->imageWidth != this->imageHeight)
+	{
+		std::cout << "Height map not square" << endl;
+		SOIL_free_image_data(data);
+		data = NULL;
+	}
+	else if(!data)
 	{
 		std::cout << "Failed to load height map" << endl;
 		SOIL_free_image_data(data);
@@ -66,40 +74,7 @@ void Terrain::createTerrain()
 		//printf("\n");
 	}
 	triangulate();
-	//createNormalMap();
 	sendToObject();
-}
-
-void Terrain::createNormalMap()
-{
-	//for (int i = 0; i < this->imageHeight; i++)
-	//{
-	//	for (int j = 0; j < this->imageWidth; j++)
-	//	{
-	//		float Z1 = getPixelColor(vec2(i + 1, j)) - getPixelColor(vec2(i - 1, j));
-	//		float Z2 = getPixelColor(vec2(i, j + 1)) - getPixelColor(vec2(i, j - 1));
-	//
-	//		vec3 A(1.0, 0.0, Z1);
-	//		vec3 B(0.0, 1.0, Z2);
-	//		vec3 N = normalize(cross(A, B)); //(B.z, A.z, 1);
-	//
-	//		normals.push_back(normalize(N));
-	//	}
-	//}
-
-	for (int i = 0; i < this->indices.size(); i += 3)
-	{
-		vec3 pos0 = this->vertices[this->indices[i]];
-		vec3 pos1 = this->vertices[this->indices[i + 1]];
-		vec3 pos2 = this->vertices[this->indices[i + 2]];
-
-		vec3 edge0 = pos0 - pos1;
-		vec3 edge1 = pos2 - pos1;
-
-		vec3 normal = normalize(cross(edge0, edge1));;
-
-		this->normals.push_back(normal);
-	}
 }
 
 void Terrain::triangulate()
