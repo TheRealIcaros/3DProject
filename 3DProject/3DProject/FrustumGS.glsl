@@ -27,13 +27,13 @@ layout(binding = 3, std140) uniform uniformBlock
 //out vec3 inColor;
 out vec4 normal;
 out vec4 worldPos;
-//https://stackoverflow.com/questions/44198886/how-to-draw-camera-frustum-using-inverse-view-matrix-in-opengl
+
 void main()
 {
 	vec3 Normal = vec3(0,0,1);
 	//Normal = getNormal(Normal);
 
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 2; i++)
 	{
 		gl_Position = (Projection * View * World) * gl_in[i].gl_Position;
 		//inColor = colorOut[i];
@@ -45,17 +45,6 @@ void main()
 	}
 	EndPrimitive();
 
-	for (int i = 3; i < 6; i++)
-	{
-		gl_Position = (Projection * View * World) * gl_in[i].gl_Position;
-		//inColor = colorOut[i];
-
-		normal = World * vec4(Normal, 1.0);
-
-		worldPos = World * gl_in[i].gl_Position;
-		EmitVertex();
-	}
-	EndPrimitive();
 
 	/*for (int i = 0; i < gl_in.length(); i++)
 	{

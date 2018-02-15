@@ -18,7 +18,6 @@ void gladTest();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void calculateDeltaTime();
 void processInput(GLFWwindow *window);
-void setTriangleData();
 void Render();
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void createUBO();
@@ -27,7 +26,6 @@ void renderQuad();
 void renderGeometryPass();
 void renderLightingPass();
 void renderFrustum();
-void CreateTexture();
 void frustum();
   
 //Shader
@@ -99,15 +97,28 @@ float yFarPlane = halfHeight * farPlane;
 
 glm::vec4 faces[8] =
 {
-	{ xNearPlane, yNearPlane,  nearPlane,  1.0f},
+	/*{ xNearPlane, yNearPlane,  nearPlane,  1.0f},
 	{-xNearPlane, yNearPlane,  nearPlane,  1.0f },
 	{ xNearPlane, -yNearPlane, nearPlane,  1.0f },
 	{-xNearPlane, -yNearPlane, nearPlane,  1.0f },
-
+	//
 	{  xFarPlane, yFarPlane, farPlane,  1.0f },
 	{ -xFarPlane, yFarPlane, farPlane,  1.0f },
 	{  xFarPlane, -yFarPlane, farPlane, 1.0f },
-	{ -xFarPlane, -yFarPlane, farPlane, 1.0f },
+	{ -xFarPlane, -yFarPlane, farPlane, 1.0f }*/
+
+
+	//NDC near face
+	{ 1, 1, -1, 1 },
+	{ -1, 1, -1, 1 },
+	{ 1, -1, -1, 1 },
+	{ -1, -1, -1, 1 },
+
+	//NDC far face
+	{ 1, 1, 1, 1 },
+	{ -1, 1, 1 , 1 },
+	{ 1, -1, 1 , 1 },
+	{ -1, -1,1, 1 },
 };
 
 
@@ -187,15 +198,11 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 	//Create Shaders
-	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
-	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
+	//geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
+	//lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 	frustumPass.createShaders("FrustumVS", "FrustumGS", "FrustumFS");
 
-	//Test of creating a cube
-	//setTriangleData();
-
-	//A temp texture for a cube
-	//CreateTexture();
+	frustum();
 
 	//Create gbuffers
 	//createGbuffer(); 
@@ -301,137 +308,6 @@ void calculateDeltaTime()
 	}
 }
 
-void setTriangleData()
-{
-	//float vertices[] = 
-	//{ 
-	//	//Back Face
-	//	0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-	//	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-	//	0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	//	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-	//	0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	//	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-	//
-	//	//Front Face
-	//	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	//	0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	//	0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	//	0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	//	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-	//	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	//
-	//	//Left Face
-	//	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	//	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	//	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	//	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	//	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	//	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	//
-	//	//Right Face
-	//	0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	//	0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	//	0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	//	0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	//	0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	//	0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	//
-	//	//Bottom Face
-	//	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	//	0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-	//	0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	//	0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	//	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	//	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	//
-	//	//Top Face
-	//	0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	//	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-	//	0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	//	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-	//	0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	//	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-	//};
-	//
-	//glGenVertexArrays(1, &VAO);
-	//glGenBuffers(1, &VBO); //Generates (1) buffer with VBO id
-	//
-	//glBindVertexArray(VAO);
-	//
-	//glBindBuffer(GL_ARRAY_BUFFER, VBO); //Binds an array-buffer with VBO 
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //Adds the vertices-data to said buffer 
-	//
-	//
-	//GLuint vertexPos = glGetAttribLocation(frustumPass.getShaderProgramID(), "vertexPosition");
-	//
-	//glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(0);
-	//
-	//GLuint texture = glGetAttribLocation(frustumPass.getShaderProgramID(), "vertex_tex");
-	//glVertexAttribPointer(texture, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	//glEnableVertexAttribArray(1);
-	//
-	//
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
-	//glBindVertexArray(0);
-	//
-
-	//
-	struct TriangleVertex
-	{
-		float x, y, z; // pos1
-		float r, g, b; // col
-	};
-	// create the actual data in plane Z = 0
-	TriangleVertex triangleVertices[6] =
-	{
-		// pos and color for each vertex
-		//{ -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f}, //top left
-		{ 0.5f, -0.5f, 0.0f, 1.0f, 0.0, 0.0f }, //bottom right
-		{ 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f }, //top right
-	
-		{ -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f }, //top left
-		{ -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f }, //bottom left
-		{ 0.5f, -0.5f, 0.0f, 1.0f, 0.0f , 0.0f } //bottom right
-	};
-	
-	// Vertex Array Object (VAO) 
-	glGenVertexArrays(1, &VAO);
-	// bind == enable
-	glBindVertexArray(VAO);
-	// this activates the first and second attributes of this VAO
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	
-	// create a vertex buffer object (VBO) id
-	glGenBuffers(1, &VBO);
-	// Bind the buffer ID as an ARRAY_BUFFER
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	// This "could" imply copying to the GPU immediately, depending on what the driver wants to do...
-	glBufferData(GL_ARRAY_BUFFER, sizeof(triangleVertices), triangleVertices, GL_STATIC_DRAW);
-	
-	// find out location of input vertex_position in the Vertex Shader 
-	GLuint vertexPos = glGetAttribLocation(frustumPass.getShaderProgramID(), "vertex_position");
-	// specify that: the vertex attribute at location "vertexPos", of 3 elements of type FLOAT, 
-	// not normalized, with STRIDE != 0, starts at offset 0 of the gVertexBuffer (it is the last bound!)
-	
-	if (vertexPos == -1)
-	{
-		OutputDebugStringA("Error, cannot find 'vertex_position' attribute in Vertex shader\n");
-		return;
-	}
-	
-	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, sizeof(TriangleVertex), (void*)(0));
-	
-	// query where which slot corresponds to the input vertex_color in the Vertex Shader 
-	GLuint vertexColor = glGetAttribLocation(frustumPass.getShaderProgramID(), "vertex_tex");
-	// specify that: the vertex attribute "vertex_color", of 3 elements of type FLOAT, not normalized, with STRIDE != 0,
-	//               starts at offset (12 bytes) of the gVertexBuffer 
-	glVertexAttribPointer(vertexColor, 3, GL_FLOAT, GL_FALSE, sizeof(TriangleVertex), (void*)(sizeof(float) * 3));
-
-}
-
 void processInput(GLFWwindow *window)
 {
 	//System inputs
@@ -505,15 +381,14 @@ void Render()
 	else
 	{
 		gpuBufferData.View = frustumCamera.getView();
-		renderFrustum();
+		
 		//Rendering forward
-		//renderFrustum();
+		renderFrustum();
 	}
-	
 
 	//1. Geometry Pass
 	//renderGeometryPass();
-
+	//
 	//2. Lighting Pass
 	//renderLightingPass();
 }
@@ -688,57 +563,30 @@ void renderLightingPass()
 void renderFrustum()
 {
 	//Set backgroundcolor
-	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClearColor(0.50f, 0.50f, 0.50f, 0.50f);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	////Update Inputs
-	/*if (cameraSwaped == false)
-		gpuBufferData.View = camera.getView();
-	else
-		gpuBufferData.View = frustumCamera.getView();*/
-
 	glUseProgram(frustumPass.getShaderProgramID());
-
-	frustum();
-
-	/*glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, bth_tex);*/
 
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
 
-	glDrawArrays(GL_LINE_STRIP, 0, 8);
-	//glDrawArrays(GL_LINE_STRIP, 0, 36);
-
-}
-
-void CreateTexture()
-{
-	glGenTextures(1, &bth_tex);
-	glActiveTexture(GL_TEXTURE0);
-
-	glBindTexture(GL_TEXTURE_2D, bth_tex);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, BTH_IMAGE_WIDTH, BTH_IMAGE_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, BTH_IMAGE_DATA);
+	glDrawArrays(GL_LINE_STRIP, 0, 48);
+	//glDrawArrays(GL_TRIANGLES, 0, 8);
 }
 
 void frustum()
 {
-	glm::vec3 verticies[8];
 
+	glm::vec3 verticies[8];
 	for (int i=0; i < 8; i++)
 	{
-		//glm::inverse(camera.getView());
+		glm::vec4 ff = glm::inverse(gpuBufferData.Projection * camera.getView()) * faces[i];
+		
 
-		glm::vec4 ff = glm::inverse(camera.getView()) * faces[i];
 		verticies[i].x = ff.x / ff.w;
 		verticies[i].y = ff.y / ff.w;
 		verticies[i].z = ff.z / ff.w;
@@ -746,30 +594,36 @@ void frustum()
 
 	// Vertex Array Object (VAO) 
 	glGenVertexArrays(1, &VAO);
-	// bind == enable
-	glBindVertexArray(VAO);
-	// this activates the first and second attributes of this VAO
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-
 	// create a vertex buffer object (VBO) id
 	glGenBuffers(1, &VBO);
+
+	// bind == enable
+	glBindVertexArray(VAO);
+
 	// Bind the buffer ID as an ARRAY_BUFFER
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
 	// This "could" imply copying to the GPU immediately, depending on what the driver wants to do...
 	glBufferData(GL_ARRAY_BUFFER, sizeof(verticies), verticies, GL_STATIC_DRAW);
 
-	// find out location of input vertex_position in the Vertex Shader 
 	GLuint vertexPos = glGetAttribLocation(frustumPass.getShaderProgramID(), "vertex_position");
-	// specify that: the vertex attribute at location "vertexPos", of 3 elements of type FLOAT, 
-	// not normalized, with STRIDE != 0, starts at offset 0 of the gVertexBuffer (it is the last bound!)
-
 	if (vertexPos == -1)
 	{
 		OutputDebugStringA("Error, cannot find 'vertex_position' attribute in Vertex shader\n");
 		return;
 	}
 
-	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, sizeof(verticies), (void*)(0));
+	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(0));
+	// this activates the first and second attributes of this VAO
+	glEnableVertexAttribArray(0);	
+
+	// find out location of input vertex_position in the Vertex Shader 
+	
+	// specify that: the vertex attribute at location "vertexPos", of 3 elements of type FLOAT, 
+	// not normalized, with STRIDE != 0, starts at offset 0 of the gVertexBuffer (it is the last bound!)
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
 	
 }
