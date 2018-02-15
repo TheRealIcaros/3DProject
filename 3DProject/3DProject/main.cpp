@@ -72,7 +72,7 @@ unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_C
 
 //My Camera & camera values
 Camera camera;
-Camera frustumCamera(glm::vec3(0.0f, 7.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
+Camera frustumCamera(glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
 bool cameraSwaped = false;
 
 //Pitch/Yaw Properties
@@ -574,7 +574,7 @@ void renderFrustum()
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
 
-	glDrawArrays(GL_LINE_STRIP, 0, 48);
+	glDrawArrays(GL_LINE_STRIP, 0, 24);
 	//glDrawArrays(GL_TRIANGLES, 0, 8);
 }
 
