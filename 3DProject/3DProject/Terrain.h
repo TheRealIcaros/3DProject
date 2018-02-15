@@ -16,12 +16,15 @@ private:
 
 	float maxHeight;
 	float imageScale;
+	float terrainSize;
 
 	string texturePath;
 	unsigned int heightMapID;
 	unsigned char* imageData;
 	int imageHeight;	//X-axis
 	int imageWidth;		//Z-axis
+
+	float* *heights;
 
 	vector<vec3> vertices;
 	vector<vec3> normals;
@@ -44,7 +47,8 @@ public:
 	void sendToObject();
 	void Draw(ShaderCreater shader);
 
-	vector<vector<float>> getHeights()const;
+	float getHeightOfTerrain(float worldX, float worldZ);
+	float barryCentric(vec3 p1, vec3 p2, vec3 p3, vec2 pos);
 };
 
 #endif // Terrain

@@ -43,6 +43,8 @@ public:
 	glm::vec3 getLookAtVector()const;
 	glm::vec3 getUpVector()const;
 	glm::vec3 getPosition()const;
+	void setPosition(glm::vec3 position);
+	void setHeight(float Y);
 };
 
 

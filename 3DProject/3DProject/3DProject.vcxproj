@@ -145,7 +145,6 @@
     </ClCompile>
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
-    <ClCompile Include="Player.cpp" />
     <ClCompile Include="ShaderCreater.cpp" />
     <ClCompile Include="Terrain.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
@@ -163,7 +162,6 @@
     </ClInclude>
     <ClInclude Include="Object.h" />
     <ClInclude Include="OBJLoader.h" />
-    <ClInclude Include="Player.h" />
     <ClInclude Include="ShaderCreater.h" />
     <ClInclude Include="Terrain.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>

@@ -6,8 +6,7 @@
 
 //Own classes
 #include "Object.h"
-//#include "Camera.h"
-#include "Player.h"
+#include "Camera.h"
 #include "Terrain.h"
 
 //#include "ShaderCreater.h"
@@ -85,7 +84,7 @@ unsigned int gBuffer, gPosition, gNormal, gColorSpec, gColorInfo;
 unsigned int attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
 
 //My Camera
-Player player;
+Camera camera;
 
 //Pitch/Yaw Properties
 bool firstMouse = true;
@@ -122,7 +121,7 @@ struct valuesFromCPUToGPU
 };
 
 //The buffer data I send
-valuesFromCPUToGPU gpuBufferData = { World, player.getView(), Projection };
+valuesFromCPUToGPU gpuBufferData = { World, camera.getView(), Projection };
 
 //Deltatime Variables
 struct Time
@@ -172,8 +171,7 @@ int main()
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 
 	//Create Terrain
-	terrain = Terrain(vec3(0, -3.0, 0), "../Models/Terrain/heightMapHill.bmp", "../Models/Terrain/stoneBrick.png");
-	player.setHeights(terrain.getHeights());
+	terrain = Terrain(vec3(-1, -13.0, -1), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
 
 	//Object
 	//objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(2.0, 0.0, 0.0));
@@ -384,20 +382,26 @@ void processInput(GLFWwindow *window)
 	//new View inputs for walking on terrain
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		vec3 lookAt = player.getLookAtVector();
+		vec3 lookAt = camera.getLookAtVector();
 		lookAt.y = 0;
-		player.moveCameraPosition((player.getSpeed() * time.deltaTime) * glm::normalize(lookAt));
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(lookAt));
+
+		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);
+		camera.setHeight(height + 1);
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		vec3 lookAt = player.getLookAtVector();
+		vec3 lookAt = camera.getLookAtVector();
 		lookAt.y = 0;
-		player.moveCameraPosition((player.getSpeed() * time.deltaTime) * glm::normalize(lookAt) * -1.0f);
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(lookAt) * -1.0f);
+
+		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);
+		camera.setHeight(height + 1);
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		player.moveCameraPosition((player.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(player.getLookAtVector(), player.getUpVector())) * -1.0f);
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())) * -1.0f);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		player.moveCameraPosition((player.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(player.getLookAtVector(), player.getUpVector())));
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())));
 
 	/*if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
@@ -411,7 +415,7 @@ void Render()
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
 	//Update Inputs
-	gpuBufferData.View = player.getView();
+	gpuBufferData.View = camera.getView();
 
 	//0.5 Terrain Pass
 	renderTerrainPass();
@@ -437,7 +441,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	lastX = xpos;
 	lastY = ypos;
 
-	player.mouseMovement(xoffset, yoffset);
+	camera.mouseMovement(xoffset, yoffset);
 }
 
 void createUBO()
@@ -601,7 +605,7 @@ void renderLightingPass()
 		glUniform3fv(glGetUniformLocation(lightingPass.getShaderProgramID(), lightColor.c_str()), 1, &lights[i].lightColor[0]);
 	}
 
-	glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), player.getPosition().x, player.getPosition().y, player.getPosition().z);
+	glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
 
 	//Render To Quad
 	renderQuad();

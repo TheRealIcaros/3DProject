@@ -7,8 +7,9 @@ Terrain::Terrain()
 
 Terrain::Terrain(vec3 startPosition, const char *heightMapPath, string texturePath)
 {
-	this->maxHeight = 0.02f;
+	this->maxHeight = 0.10f;
 	this->imageScale = 200.0f;
+	this->terrainSize = 265.0f;
 
 	this->terrainPosition = startPosition;
 	this->texturePath = texturePath;
@@ -46,6 +47,12 @@ unsigned char* Terrain::loadHeightMap(const char *path)
 
 void Terrain::createTerrain()
 {
+	this->heights = new float*[this->imageHeight];
+	for (int i = 0; i < this->imageHeight; i++)
+	{
+		this->heights[i] = new float[this->imageWidth];
+	}
+
 	int index = 0;
 	for (int z = 0; z < this->imageHeight ; z++)
 	{
@@ -59,10 +66,11 @@ void Terrain::createTerrain()
 
 			gray = gray * this->maxHeight;
 			vec3 position;
-			position.x = x;
-			position.y = gray;
-			position.z = z;
+			position.x = (this->terrainSize / this->imageWidth) * x;
+			position.y = gray + this->terrainPosition.y;
+			position.z = (this->terrainSize / this->imageHeight) * z;
 			vertices.push_back(position + this->terrainPosition);
+			this->heights[x][z] = float(position.y + this->terrainPosition.y);
 
 			vec2 uv;
 			uv.x = (float)(1.0f / (float)this->imageWidth) * (float)x * this->imageScale;
@@ -127,9 +135,9 @@ void Terrain::sendToObject()
 	material.name = "Terrain";
 	material.id = objLoader.TextureFromFile(this->texturePath.c_str());
 	material.type = "texture_diffuse";
-	material.colorAmbient = vec3(0.2, 0.2, 0.2);
-	material.colorDiffuse = vec3(0.2, 0.8, 0.8);
-	material.colorSpecular = vec3(0.01, 0.8, 0.8);
+	material.colorAmbient = vec3(0.5, 0.2, 0.2);
+	material.colorDiffuse = vec3(0.4, 0.8, 0.8);
+	material.colorSpecular = vec3(0.1, 0.8, 0.8);
 	material.specularExponent = 32;
 
 	materials.push_back(material);
@@ -142,18 +150,48 @@ void Terrain::Draw(ShaderCreater shader)
 	this->terrain.Draw(shader);
 }
 
-vector<vector<float>> Terrain::getHeights()const
+float Terrain::getHeightOfTerrain(float worldX, float worldZ)
 {
-	vector<vector<float>> dataOut;
+	float terrainX = worldX - this->terrainPosition.x;
+	float terrainZ = worldZ - this->terrainPosition.z;
+	float gridSquareSize = this->terrainSize / (this->imageWidth - 1);
 
-	for (int i = 0; i < this->imageHeight; i++)
+	int gridX = (int)floor(terrainX / gridSquareSize);
+	int gridZ = (int)floor(terrainZ / gridSquareSize);
+
+	if (gridX >= this->imageWidth - 1 || gridZ >= this->imageHeight - 1 || gridX < 0 || gridZ < 0)
 	{
-		dataOut.push_back(vector<float>());
-		for (int j = 0; j < this->imageWidth; j++)
-		{
-			dataOut[i].push_back(vertices[i * this->imageWidth + j].y);
-		}
+		return 0.0f;
 	}
 
-	return dataOut;
+	float xCoord = fmod(terrainX, gridSquareSize) / gridSquareSize;
+	float zCoord = fmod(terrainZ, gridSquareSize) / gridSquareSize;
+
+	float result;
+
+	if (xCoord <= (1 - zCoord))
+	{
+		result = this->barryCentric(vec3(0.0, this->heights[gridX][gridZ], 0.0),
+			vec3(1.0, this->heights[gridX + 1][gridZ], 0.0),
+			vec3(0.0, this->heights[gridX][gridZ + 1], 1.0),
+			vec2(xCoord, zCoord));
+	}
+	else 
+	{
+		result = this->barryCentric(vec3(1.0, this->heights[gridX + 1][gridZ], 0.0),
+			vec3(1.0, this->heights[gridX + 1][gridZ + 1], 1.0),
+			vec3(0.0, this->heights[gridX][gridZ + 1], 1.0),
+			vec2(xCoord, zCoord));
+	}
+
+	return result;
+}
+
+float Terrain::barryCentric(vec3 p1, vec3 p2, vec3 p3, vec2 pos) 
+{
+	float det = (p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z);
+	float l1 = ((p2.z - p3.z) * (pos.x - p3.x) + (p3.x - p2.x) * (pos.y - p3.z)) / det;
+	float l2 = ((p3.z - p1.z) * (pos.x - p3.x) + (p1.x - p3.x) * (pos.y - p3.z)) / det;
+	float l3 = 1.0f - l1 - l2;
+	return l1 * p1.y + l2 * p2.y + l3 * p3.y;
 }
