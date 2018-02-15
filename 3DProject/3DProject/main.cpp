@@ -78,7 +78,6 @@ GLuint textureID2;
 
 //gbuffer
 unsigned int gBuffer, gPosition, gNormal, gColorSpec;
-
 //lightbuffer
 unsigned int lBuffer, lColor, lGlow;
 // Glow textures
@@ -480,11 +479,11 @@ void createGbuffer()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gColorSpec, 0);
 
-	//tell OPENGL which color vi ska använda (av denna framebuffer) for rendering på svenska
-	//TOP OF THE KOD
+	//tell OPENGL which color we are going to use (from this framebuffer) for rendering
+	//TOP OF THE CODE
 	unsigned int attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 	glDrawBuffers(3, attachments);
-	//add djupbufé 
+	//add depthbuffer 
 
 	unsigned int rboDepth;
 	glGenRenderbuffers(1, &rboDepth);
@@ -495,7 +494,7 @@ void createGbuffer()
 
 void createGaussBuffer()
 {
-	// Glow
+	// Blurring that will later become glow relevant in merge
 	glGenFramebuffers(2, pingPongFBO);
 	glGenTextures(2, pingPongBuff);
 	for (unsigned int i = 0; i < 2; i++)
@@ -611,7 +610,8 @@ void renderLightingPass()
 	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gColorSpec"), 2);
 
 	//	TODO:(Fix multiple lights and send it to LightingPassFS)
-	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "nrOfLights"), lights.size());
+	GLuint lightPos = glGetUniformLocation(lightingPass.getShaderProgramID(), "nrOfLights");
+	glUniform1i(lightPos, lights.size());
 	for (int i = 0; i < lights.size(); i++)
 	{
 		string lightPos = "lights[" + std::to_string(i) + "].Position";
