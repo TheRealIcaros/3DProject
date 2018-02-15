@@ -39,6 +39,8 @@ public:
 	Terrain(vec3 startPosition, const char *heightMapPath, string texturePath);
 	~Terrain();
 
+	void deallocate();
+
 	unsigned char* loadHeightMap(const char *path);
 	void createTerrain();
 	void triangulate();

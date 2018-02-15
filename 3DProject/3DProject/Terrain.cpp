@@ -24,6 +24,15 @@ Terrain::~Terrain()
 
 }
 
+void Terrain::deallocate()
+{
+	for (int i = 0; i < this->imageHeight; i++)
+	{
+		delete[] this->heights[i];
+	}
+	delete[] this->heights;
+}
+
 unsigned char* Terrain::loadHeightMap(const char *path)
 {
 	int nrChannels;
