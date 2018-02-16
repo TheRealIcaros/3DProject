@@ -9,7 +9,7 @@ Terrain::Terrain(vec3 startPosition, const char *heightMapPath, string texturePa
 {
 	this->maxHeight = 0.10f;
 	this->imageScale = 200.0f;
-	this->terrainSize = 265.0f;
+	this->terrainSize = 128;
 
 	this->terrainPosition = startPosition;
 	this->texturePath = texturePath;

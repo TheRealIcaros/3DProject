@@ -33,10 +33,12 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 //GLuint loadBMPTexture(const char* texturePath, GLuint &textureID);
 void createUBO();
 void createGbuffer();
+void createDepthMapFBO();
 void renderQuad();
 void renderTerrainPass();
 void renderGeometryPass();
 void renderLightingPass();
+void renderShadowMapping();
   
 //Shader
 ShaderCreater terrainPass;
@@ -55,6 +57,11 @@ struct Light
 	glm::vec3 lightPos;
 	glm::vec3 lightColor;
 };
+//Shadow Mapping
+const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024; 
+unsigned int depthMapFBO;
+unsigned int depthMap;
+
 
 vector<Light> lights;
 
@@ -174,8 +181,8 @@ int main()
 	terrain = Terrain(vec3(-1, -13.0, -1), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
 
 	//Object
-	//objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(2.0, 0.0, 0.0));
-	//objects.loadObject("../Models/Box/box.obj", glm::vec3(-2.0, 0.0, 0.0));
+	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(26.0, 0.0, 9.0));
+	objects.loadObject("../Models/Box/box.obj", glm::vec3(25.0, 0.0, 11.0));
 
 	//Create gbuffers
 	createGbuffer(); 
@@ -364,14 +371,9 @@ void processInput(GLFWwindow *window)
 		glfwSetWindowShouldClose(window, true);
 	if (glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS)
 	{
-		if (time.active)
-			time.active = false;
-		else
-		{
-			time.active = true;
-			time.duration = 0.0f;
-			time.frames = 0;
-		}
+		time.active = !time.active;
+		time.duration = 0.0f;
+		time.frames = 0;
 	}
 
 	//View inputs	// Forward and back in camera xyz coord
@@ -510,6 +512,25 @@ void createGbuffer()
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
 }
 
+void createDepthMapFBO()
+{
+	glGenFramebuffers(1, &depthMapFBO);
+	
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void renderQuad()
 {
 	if (quadVAO == 0)
@@ -610,4 +631,22 @@ void renderLightingPass()
 
 	//Render To Quad
 	renderQuad();
+}
+
+void renderShadowMapping() 
+{
+	//1.
+	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		//ConfigureShaderAndMatrices();
+		//RenderScene();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	//2. 
+	glViewport(0, 0, WIDTH, HEIGHT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//ConfigureShaderAndMatrices();
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	//RenderScene();
 }
