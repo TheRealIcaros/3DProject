@@ -83,9 +83,12 @@ unsigned int lBuffer, lColor, lGlow;
 // Glow textures
 unsigned int pingPongFBO[2], pingPongBuff[2];
 
+bool bloomKey = false;
+bool glowKey = false;
+bool intensityKey = false;
 
 //My Camera
-Camera camera;
+Camera camera = Camera(glm::vec3(0.0, 0.0, 5.0), glm::vec3(0.0, 0.0, -1.0));
 
 //Pitch/Yaw Properties
 bool firstMouse = true;
@@ -393,6 +396,34 @@ void processInput(GLFWwindow *window)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);
+	if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)	
+		if (!bloomKey)
+		{
+			bloomKey = !bloomKey;
+		}
+	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+		if (!glowKey)
+		{
+			glowKey = !glowKey;
+		}
+	if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
+		if (!intensityKey)
+		{
+			intensityKey = !intensityKey;
+		}
+	if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
+	{
+		bloomKey = false;
+		glowKey = false;
+		intensityKey = false;
+	}
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+	{
+		bloomKey = !false;
+		glowKey = !false;
+		intensityKey = !false;
+	}
+
 }
 
 void Render()
@@ -623,6 +654,10 @@ void renderLightingPass()
 
 	glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
 
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "glowKey"), glowKey);
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "intensityKey"), intensityKey);
+
+
 	//Render To Quad
 	renderQuad();
 
@@ -667,6 +702,8 @@ void renderMergePass()
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, pingPongBuff[1]);
 	glUniform1i(glGetUniformLocation(mergePass.getShaderProgramID(), "lGlow"), 1);
+
+	glUniform1i(glGetUniformLocation(mergePass.getShaderProgramID(), "bloomKey"), bloomKey);
 
 	renderQuad();
 }

@@ -7,6 +7,7 @@ in vec2 textureCoordinates;
 
 uniform sampler2D lColor;
 uniform sampler2D lGlow;
+uniform bool bloomKey;
 
 void main()
 {
@@ -20,7 +21,14 @@ void main()
 	vec3 result = vec3(1.0) - exp(-hdrColor * exposure);
 
 	result = pow(result, vec3(1.0 / gamma));
-	FragColor = vec4(result, 1.0);
+	if (!bloomKey)
+	{
+		FragColor = vec4(result, 1.0);
+	}
+	else
+	{
+		FragColor = vec4(bloomColor, 1.0);
+	}
 	//FragColor = vec4(bloomColor + hdrColor, 1.0);
 	//FragColor = vec4(bloomColor, 1.0);
 }
