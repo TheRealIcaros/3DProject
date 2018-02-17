@@ -1,16 +1,19 @@
 #include <glad\glad.h>
 #include <crtdbg.h>
-//#include <stb_image.h> //For loading textures and images
 #include <stdio.h>
 #include <gl\GL.h>
 #include <matrix.hpp>
 //Own classes
-#include "bth_image.h"
+#include "Object.h"
 #include "Camera.h"
 #include "Defines.h"
 #include "Model.h"
 #include "ShaderCreater.h"
 
+//3D-math
+//#include <glm.hpp>
+//#include <gtc/matrix_transform.hpp>
+//#include <gtc/type_ptr.hpp>
 
 void initiateGLFW();
 GLFWwindow *createWindow();
@@ -22,13 +25,17 @@ void Render();
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void createUBO();
 void createGbuffer();
+void createDepthMapFBO();
 void renderQuad();
+void renderTerrainPass();
 void renderGeometryPass();
 void renderLightingPass();
+void renderShadowMapping();
 void renderFrustum();
 void frustum();
   
 //Shader
+ShaderCreater terrainPass;
 ShaderCreater geometryPass;
 ShaderCreater lightingPass;
 ShaderCreater frustumPass;
@@ -44,11 +51,19 @@ struct Light
 	glm::vec3 lightPos;
 	glm::vec3 lightColor;
 };
+//Shadow Mapping
+const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024; 
+unsigned int depthMapFBO;
+unsigned int depthMap;
+
 
 vector<Light> lights;
 
-//Model
-vector<Model> models;
+//Terrain
+Terrain terrain;
+
+//Object
+Object objects; 
 
 //GLuint Variables
 GLuint VBO = 0;
@@ -67,8 +82,8 @@ GLuint textureID;
 GLuint textureID2;
 
 //gbuffer
-unsigned int gBuffer, gPosition, gNormal, gColorSpec;
-unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+unsigned int gBuffer, gPosition, gNormal, gColorSpec, gColorInfo;
+unsigned int attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
 
 //My Camera & camera values
 Camera camera;
@@ -198,11 +213,21 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 	//Create Shaders
+	terrainPass.createShaders("TerrainVS", "TerrainGS", "TerrainFS");
+	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
+	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 	//geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	//lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 	frustumPass.createShaders("FrustumVS", "FrustumGS", "FrustumFS");
 
 	frustum();
+
+	//Create Terrain
+	terrain = Terrain(vec3(-1, -13.0, -1), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
+
+	//Object
+	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(26.0, 0.0, 9.0));
+	objects.loadObject("../Models/Box/box.obj", glm::vec3(25.0, 0.0, 11.0));
 
 	//Create gbuffers
 	//createGbuffer(); 
@@ -250,7 +275,7 @@ int main()
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 
-	
+	terrain.deallocate();
 	glfwTerminate();
 	return 0;
 }
@@ -308,6 +333,87 @@ void calculateDeltaTime()
 	}
 }
 
+void setTriangleData()
+{
+	float vertices[] = 
+	{ 
+		//Back Face
+		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		//Front Face
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		//Left Face
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		//Right Face
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		//Bottom Face
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		//Top Face
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+	};
+
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO); //Generates (1) buffer with VBO id
+
+	glBindVertexArray(VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO); //Binds an array-buffer with VBO 
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //Adds the vertices-data to said buffer 
+
+
+	GLuint vertexPos = glGetAttribLocation(geometryPass.getShaderProgramID(), "vertexPosition");
+
+	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	GLuint texture = glGetAttribLocation(geometryPass.getShaderProgramID(), "vertex_tex");
+	glVertexAttribPointer(texture, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
+
+	//loadTexture("../Textures/durkplat.bmp", textureID);
+	//loadBMPTexture("../Textures/durkplat.bmp", textureID);
+	//loadBMPTexture("../Textures/ball.bmp", textureID2);
+}
+
 void processInput(GLFWwindow *window)
 {
 	//System inputs
@@ -315,14 +421,9 @@ void processInput(GLFWwindow *window)
 		glfwSetWindowShouldClose(window, true);
 	if (glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS)
 	{
-		if (time.active)
-			time.active = false;
-		else
-		{
-			time.active = true;
-			time.duration = 0.0f;
-			time.frames = 0;
-		}
+		time.active = !time.active;
+		time.duration = 0.0f;
+		time.frames = 0;
 	}
 
 	//View inputs
@@ -332,9 +433,26 @@ void processInput(GLFWwindow *window)
 		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * frustumCamera.getUpVector());
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()) * -1.0f);*/
+
+	//new View inputs for walking on terrain
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()) * -1.0f);
-		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * frustumCamera.getUpVector() * -1.0f);
+		vec3 lookAt = camera.getLookAtVector();
+		lookAt.y = 0;
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(lookAt));
+
+		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);
+		camera.setHeight(height + 1);
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		vec3 lookAt = camera.getLookAtVector();
+		lookAt.y = 0;
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(lookAt) * -1.0f);
+
+		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);
+		camera.setHeight(height + 1);
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
@@ -386,6 +504,9 @@ void Render()
 		renderFrustum();
 	}
 
+	//0.5 Terrain Pass
+	renderTerrainPass();
+	
 	//1. Geometry Pass
 	//renderGeometryPass();
 	//
@@ -451,7 +572,7 @@ void createGbuffer()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
 
-	//color + specular color buffer
+	//color buffer
 	glGenTextures(1, &gColorSpec);
 	glBindTexture(GL_TEXTURE_2D, gColorSpec);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -459,9 +580,17 @@ void createGbuffer()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gColorSpec, 0);
 
+	//Ambient, Diffuse, Specular och Shininess color buffer
+	glGenTextures(1, &gColorInfo);
+	glBindTexture(GL_TEXTURE_2D, gColorInfo);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gColorInfo, 0);
+
 	//tell OPENGL which color vi ska använda (av denna framebuffer) for rendering på svenska
 	//TOP OF THE KOD
-	glDrawBuffers(3, attachments);
+	glDrawBuffers(4, attachments);
 	//add djupbufé 
 
 	unsigned int rboDepth;
@@ -469,6 +598,25 @@ void createGbuffer()
 	glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, WIDTH, HEIGHT);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+}
+
+void createDepthMapFBO()
+{
+	glGenFramebuffers(1, &depthMapFBO);
+	
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void renderQuad()
@@ -500,23 +648,34 @@ void renderQuad()
 	glBindVertexArray(0);
 }
 
+void renderTerrainPass()
+{
+	//Use TerrainPass Shader Program
+	glUseProgram(terrainPass.getShaderProgramID());
+	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	//Bind UBO for sending GPU data to TerrainPass Program
+	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
+
+	terrain.Draw(terrainPass);
+
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void renderGeometryPass()
 {
 	//Use GeometryPass Shader Program
 	glUseProgram(geometryPass.getShaderProgramID());
-	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glUniformMatrix4fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "View"), 1, GL_FALSE, &gpuBufferData.View[0][0]);
+	/*glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);*/
 
 	//Bind UBO for sending GPU data to GeometryPass Program
-	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
-		
-	for (unsigned int i = 0; i < models.size(); i++)
-	{
-		models[i].Draw(geometryPass);
-	}
+	/*glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);*/
+
+	objects.Draw(geometryPass);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -541,7 +700,11 @@ void renderLightingPass()
 	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gColorSpec"), 2);
 	glBindTexture(GL_TEXTURE_2D, gColorSpec);
 
-	//	TODO:(Fix multiple lights and send it to LightingPassFS)
+	glActiveTexture(GL_TEXTURE3);
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gColorInfo"), 3);
+	glBindTexture(GL_TEXTURE_2D, gColorInfo);
+
+	//Lights
 	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "nrOfLights"), lights.size());
 	for (unsigned int i = 0; i < lights.size(); i++)
 	{

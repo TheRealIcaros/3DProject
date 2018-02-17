@@ -36,6 +36,15 @@
     <None Include="GeometryPassFS.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="TerrainFS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="TerrainVS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="TerrainGS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
     <None Include="FrustumFS.glsl">
       <Filter>Shaders</Filter>
     </None>
@@ -63,13 +72,19 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Model.cpp">
+      <Filter>#Unused</Filter>
+    </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OBJLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Terrain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Include\stb_image\stb_image.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -82,7 +97,19 @@
     <ClInclude Include="Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="OBJLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Model.h">
+      <Filter>#Unused</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\stb_image\stb_image.h">
+      <Filter>#Unused</Filter>
+    </ClInclude>
+    <ClInclude Include="Terrain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bth_image.h">
