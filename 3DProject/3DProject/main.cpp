@@ -9,6 +9,7 @@
 #include "Defines.h"
 #include "Model.h"
 #include "ShaderCreater.h"
+#include "Terrain.h"
 
 //3D-math
 //#include <glm.hpp>
@@ -51,13 +52,15 @@ struct Light
 	glm::vec3 lightPos;
 	glm::vec3 lightColor;
 };
+vector<Light> lights;
+
+
 //Shadow Mapping
 const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024; 
 unsigned int depthMapFBO;
 unsigned int depthMap;
-
-
-vector<Light> lights;
+glm::mat4 lightView, lightProjection; //Matrixes for the shadow mapping
+glm::mat4 ligthSpaceTransFormMatrix; //Changes world-space coordinates to light-space coordingates
 
 //Terrain
 Terrain terrain;
@@ -97,10 +100,9 @@ double lastY = HEIGHT / 2.0f;
 
 //Projection Matrix values
 float FOV = 0.45f * PI;
-//float aspectRatio = 640 / 480;
 float aspectRatio = WIDTH / HEIGHT;
 float nearPlane = 0.1f;
-float farPlane = 20.0f;
+float farPlane = 50.0f;
 
 //Frustum values
 float halfHeight = tanf(DegreseToRadians * (FOV / 2.f));
@@ -218,9 +220,9 @@ int main()
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 	//geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	//lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
-	frustumPass.createShaders("FrustumVS", "FrustumGS", "FrustumFS");
+	//frustumPass.createShaders("FrustumVS", "FrustumGS", "FrustumFS");
 
-	frustum();
+	//frustum();
 
 	//Create Terrain
 	terrain = Terrain(vec3(-1, -13.0, -1), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
@@ -230,23 +232,15 @@ int main()
 	objects.loadObject("../Models/Box/box.obj", glm::vec3(25.0, 0.0, 11.0));
 
 	//Create gbuffers
-	//createGbuffer(); 
+	createGbuffer(); 
 
 	//Create UBO
 	createUBO();
 
 	//Add lights
 	lights.push_back(Light(glm::vec3(0.0, 0.0, -5.0), glm::vec3(1.0, 1.0, 1.0)));
-	lights.push_back(Light(glm::vec3(0.0, 0.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
-	lights.push_back(Light(glm::vec3(5.0, 0.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
-
-	//Add Models
-	models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));
-	//models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 0.0)));
-	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-10.0, 0.0, 0.0)));
-	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, 10.0)));
-	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-10.0, 0.0, -10.0)));
-	models.push_back(Model("../Models/Box/Box.obj", glm::vec3(-2.0, 0.0, -10.0)));
+	//lights.push_back(Light(glm::vec3(0.0, 0.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
+	//lights.push_back(Light(glm::vec3(5.0, 0.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
 
 	//Cursor Disabled/non-visible
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -333,87 +327,6 @@ void calculateDeltaTime()
 	}
 }
 
-void setTriangleData()
-{
-	float vertices[] = 
-	{ 
-		//Back Face
-		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-		//Front Face
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-		//Left Face
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		//Right Face
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		//Bottom Face
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-		//Top Face
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-	};
-
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO); //Generates (1) buffer with VBO id
-
-	glBindVertexArray(VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO); //Binds an array-buffer with VBO 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //Adds the vertices-data to said buffer 
-
-
-	GLuint vertexPos = glGetAttribLocation(geometryPass.getShaderProgramID(), "vertexPosition");
-
-	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	GLuint texture = glGetAttribLocation(geometryPass.getShaderProgramID(), "vertex_tex");
-	glVertexAttribPointer(texture, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	
-	glEnableVertexAttribArray(1);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
-
-	//loadTexture("../Textures/durkplat.bmp", textureID);
-	//loadBMPTexture("../Textures/durkplat.bmp", textureID);
-	//loadBMPTexture("../Textures/ball.bmp", textureID2);
-}
-
 void processInput(GLFWwindow *window)
 {
 	//System inputs
@@ -426,49 +339,48 @@ void processInput(GLFWwindow *window)
 		time.frames = 0;
 	}
 
-	//View inputs
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	{
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()));
-		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * frustumCamera.getUpVector());
-	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()) * -1.0f);*/
-
 	//new View inputs for walking on terrain
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		vec3 lookAt = camera.getLookAtVector();
-		lookAt.y = 0;
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(lookAt));
+		//vec3 lookAt = camera.getLookAtVector();
+		//lookAt.y = 0;
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()));						//"Normal"-Camera
+		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * frustumCamera.getUpVector());	//Frustum-Camera
 
-		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);
-		camera.setHeight(height + 1);
+		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);	//Collect info about terrain height
+		camera.setHeight(height + 1);	//Place camera 1 unit over the terrain
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		vec3 lookAt = camera.getLookAtVector();
-		lookAt.y = 0;
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(lookAt) * -1.0f);
+		//vec3 lookAt = camera.getLookAtVector();
+		//lookAt.y = 0;
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()) * -1.0f);
+		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * frustumCamera.getUpVector() * -1.0f);
 
-		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);
-		camera.setHeight(height + 1);
+		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);	//Collect info about terrain height
+		camera.setHeight(height + 1);	//Place camera 1 unit over the terrain
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())) * -1.0f);
 		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(frustumCamera.getLookAtVector(), frustumCamera.getUpVector())) * -1.0f);
+
+		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);	//Collect info about terrain height
+		camera.setHeight(height + 1);	//Place camera 1 unit over the terrain
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())));
 		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(frustumCamera.getLookAtVector(), frustumCamera.getUpVector())));
+
+		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z); //Collect info about terrain height
+		camera.setHeight(height + 1); //Place camera 1 unit over the terrain
 	}
 		
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && cameraSwaped != true)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && cameraSwaped != true)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);
+	//if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && cameraSwaped != true)
+	//	camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
+	//if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && cameraSwaped != true)
+	//	camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);
 
 
 	//Change between the two cameras
@@ -501,17 +413,17 @@ void Render()
 		gpuBufferData.View = frustumCamera.getView();
 		
 		//Rendering forward
-		renderFrustum();
+		//renderFrustum();
 	}
 
 	//0.5 Terrain Pass
 	renderTerrainPass();
 	
 	//1. Geometry Pass
-	//renderGeometryPass();
-	//
+	renderGeometryPass();
+	
 	//2. Lighting Pass
-	//renderLightingPass();
+	renderLightingPass();
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -721,6 +633,24 @@ void renderLightingPass()
 
 	//Render To Quad
 	renderQuad();
+}
+
+void renderShadowMapping()
+{
+	//1. First renderpass in shadow mapping
+	lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
+	lightView = glm::lookAt(lights[0].lightPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	ligthSpaceTransFormMatrix = lightProjection * lightView;
+	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT); //This sets the viewport to the shadow-mappings resolution
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glClear(GL_DEPTH_BUFFER_BIT); //This clears the depth buffer
+
+	
+
+	//2. Second renderpass in shadow mapping
+	glViewport(0, 0, WIDTH, HEIGHT); // Sets the viewport to the resolution of the application window
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // This clears both the color buffer and the depth buffer
+	glBindTexture(GL_TEXTURE_2D, depthMap); 
 }
 
 void renderFrustum()
