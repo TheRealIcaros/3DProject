@@ -33,7 +33,7 @@ void renderGeometryPass();
 void renderLightingPass();
 void renderShadowMapping();
 void renderFrustum();
-void frustum();
+void frustum();  
   
 //Shader
 ShaderCreater terrainPass;
