@@ -3,20 +3,18 @@
 
 #include "Defines.h"
 #include <vector>
-#include <assimp\Importer.hpp>
 
 //Own Classes
 #include "ShaderCreater.h"
 
 using namespace std;
+using namespace glm;
 
 struct Vertex
 {
-	glm::vec3 Position;
-	glm::vec3 Normal;
-	glm::vec2 TexCoords;
-	/*glm::vec3 Tangent;
-	glm::vec3 Bitangent;*/
+	vec3 Position;
+	vec3 Normal;
+	vec2 TexCoords;
 };
 
 struct Texture
@@ -26,18 +24,34 @@ struct Texture
 	string path;
 };
 
+struct Material
+{
+	string name;
+
+	unsigned int id;
+	string type;
+	string path;
+
+	vec3 colorAmbient;
+	vec3 colorDiffuse;
+	vec3 colorSpecular;
+	float specularExponent;
+};
+
 class Mesh
 {
 private:
+	vec3 localPosition;
 	unsigned int VAO, VBO, EBO;
 	void setupMesh();
 public:
-	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
+	Mesh();
+	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Material> materials, vec3 startPosition);
 	~Mesh();
 
 	vector<Vertex> vertices;
 	vector<unsigned int> indices;
-	vector<Texture> textures;
+	vector<Material> materials;
 
 	void Draw(ShaderCreater shader);
 };
