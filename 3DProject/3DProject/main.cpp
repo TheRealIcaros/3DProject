@@ -37,6 +37,7 @@ void frustum();
   
 //Shader
 ShaderCreater terrainPass;
+ShaderCreater shadowMapPass;
 ShaderCreater geometryPass;
 ShaderCreater lightingPass;
 ShaderCreater frustumPass;
@@ -216,6 +217,7 @@ int main()
 
 	//Create Shaders
 	terrainPass.createShaders("TerrainVS", "TerrainGS", "TerrainFS");
+	shadowMapPass.createShaders("ShadowVS", "NULL", "ShadowFS");
 	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 	//geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
