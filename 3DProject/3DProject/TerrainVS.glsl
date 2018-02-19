@@ -21,8 +21,8 @@ void main()
 
 	//This is test :D
 	/*float Curvature = 0.01f;
-	vec4 vv = (Projection * View * World) * vec4(vertex_position, 1.0);
+	vec4 vv = (World) * vec4(vertex_position, 1.0);
 	vv.xyz -= cameraPos.xyz;
-	vv = vec4(0.0f, (vv.z * vv.z) * - Curvature, 0.0f, 0.0f);
-	gl_Position += vv / (vec4(1.0f) * World * View * Projection);*/
+	vv = vec4(0.0f, (vv.x * vv.z) * -Curvature, 0.0f, 1.0f);
+	gl_Position += vv * inverse(World);*/
 }
