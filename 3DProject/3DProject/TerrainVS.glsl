@@ -12,11 +12,17 @@ layout(binding = 3, std140) uniform uniformBlock
 out vec3 GeoPos;
 out vec2 GeoUV;
 
+uniform vec3 cameraPos;
+
 void main()
 {
 	GeoUV = vertex_tex;
-
-	//GeoPos = vertex_position;
-
 	gl_Position = vec4(vertex_position, 1.0);
+
+	//This is test :D
+	/*float Curvature = 0.01f;
+	vec4 vv = (Projection * View * World) * vec4(vertex_position, 1.0);
+	vv.xyz -= cameraPos.xyz;
+	vv = vec4(0.0f, (vv.z * vv.z) * - Curvature, 0.0f, 0.0f);
+	gl_Position += vv / (vec4(1.0f) * World * View * Projection);*/
 }
