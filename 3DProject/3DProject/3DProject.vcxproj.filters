@@ -54,6 +54,18 @@
     <None Include="FrustumGS.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="ShadowFS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="ShadowVS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="DebugDepthFS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="DebugDepthVS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -110,9 +122,6 @@
       <Filter>#Unused</Filter>
     </ClInclude>
     <ClInclude Include="Terrain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="bth_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

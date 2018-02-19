@@ -38,6 +38,7 @@ void frustum();
 //Shader
 ShaderCreater terrainPass;
 ShaderCreater shadowMapPass;
+ShaderCreater debugDepthPass;
 ShaderCreater geometryPass;
 ShaderCreater lightingPass;
 ShaderCreater frustumPass;
@@ -55,13 +56,12 @@ struct Light
 };
 vector<Light> lights;
 
-
 //Shadow Mapping
 const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024; 
 unsigned int depthMapFBO;
 unsigned int depthMap;
 glm::mat4 lightView, lightProjection; //Matrixes for the shadow mapping
-glm::mat4 ligthSpaceTransFormMatrix; //Changes world-space coordinates to light-space coordingates
+glm::mat4 lightSpaceTransFormMatrix; //Changes world-space coordinates to light-space coordingates
 
 //Terrain
 Terrain terrain;
@@ -102,7 +102,7 @@ double lastY = HEIGHT / 2.0f;
 //Projection Matrix values
 float FOV = 0.45f * PI;
 float aspectRatio = WIDTH / HEIGHT;
-float nearPlane = 0.1f;
+float nearPlane = 1.0f;
 float farPlane = 50.0f;
 
 //Frustum values
@@ -138,7 +138,6 @@ glm::vec4 faces[8] =
 	{ 1, -1, 1 , 1 },
 	{ -1, -1,1, 1 },
 };
-
 
 glm::mat4 WorldMatrix()
 {
@@ -216,8 +215,9 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 	//Create Shaders
-	terrainPass.createShaders("TerrainVS", "TerrainGS", "TerrainFS");
+	terrainPass.createShaders("TerrainVS", "TerrainGS", "TerrainFS"); 
 	shadowMapPass.createShaders("ShadowVS", "NULL", "ShadowFS");
+	debugDepthPass.createShaders("DebugDepthVS", "NULL", "DebugDepthFS");
 	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 	//geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
@@ -227,20 +227,23 @@ int main()
 	//frustum();
 
 	//Create Terrain
-	terrain = Terrain(vec3(-1, -13.0, -1), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
+	//terrain = Terrain(vec3(-1, -13.0, -1), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
 
 	//Object
-	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(26.0, 0.0, 9.0));
+	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(0.0, 0.0, -3.0));
 	objects.loadObject("../Models/Box/box.obj", glm::vec3(25.0, 0.0, 11.0));
 
 	//Create gbuffers
-	createGbuffer(); 
+	//createGbuffer(); 
+
+	//Create Depth Map
+	createDepthMapFBO();
 
 	//Create UBO
 	createUBO();
 
 	//Add lights
-	lights.push_back(Light(glm::vec3(0.0, 0.0, -5.0), glm::vec3(1.0, 1.0, 1.0)));
+	lights.push_back(Light(glm::vec3(8.0, 0.0, 2.0), glm::vec3(1.0, 1.0, 1.0)));
 	//lights.push_back(Light(glm::vec3(0.0, 0.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
 	//lights.push_back(Light(glm::vec3(5.0, 0.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
 
@@ -249,6 +252,7 @@ int main()
 
 	//Depth testing enabled
 	glEnable(GL_DEPTH_TEST);
+	//glDepthFunc(GL_ALWAYS);
 
 	//Render Loop
 	while (!glfwWindowShouldClose(window))
@@ -419,13 +423,16 @@ void Render()
 	}
 
 	//0.5 Terrain Pass
-	renderTerrainPass();
+	//renderTerrainPass();
 	
 	//1. Geometry Pass
-	renderGeometryPass();
+	//renderGeometryPass();
 	
+	//1.5 Shadow Pass
+	renderShadowMapping();
+
 	//2. Lighting Pass
-	renderLightingPass();
+	//renderLightingPass();
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -531,6 +538,9 @@ void createDepthMapFBO()
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glUseProgram(debugDepthPass.getShaderProgramID());
+	glUniform1i(glGetUniformLocation(debugDepthPass.getShaderProgramID(), "depthMap"), 0);
 }
 
 void renderQuad()
@@ -641,18 +651,28 @@ void renderShadowMapping()
 {
 	//1. First renderpass in shadow mapping
 	lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
-	lightView = glm::lookAt(lights[0].lightPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	ligthSpaceTransFormMatrix = lightProjection * lightView;
+	lightView = glm::lookAt(lights[0].lightPos, glm::vec3(0.0), glm::vec3(0.0f, 1.0f, 0.0f));
+	lightSpaceTransFormMatrix = lightProjection *  lightView;
+
+	glUseProgram(shadowMapPass.getShaderProgramID());
+	glUniformMatrix4fv(glGetUniformLocation(shadowMapPass.getShaderProgramID(), "lightSpaceMatrix"), 1, GL_FALSE, &lightSpaceTransFormMatrix[0][0]);
+
 	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT); //This sets the viewport to the shadow-mappings resolution
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	glClear(GL_DEPTH_BUFFER_BIT); //This clears the depth buffer
+	//terrain.DrawDepth(shadowMapPass);
+	objects.DrawDepth(shadowMapPass);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	
-
-	//2. Second renderpass in shadow mapping
+	//Reset Viewport
 	glViewport(0, 0, WIDTH, HEIGHT); // Sets the viewport to the resolution of the application window
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // This clears both the color buffer and the depth buffer
+
+	//2. Second renderpass in shadow mapping
+	glUseProgram(debugDepthPass.getShaderProgramID());
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, depthMap); 
+	renderQuad();
 }
 
 void renderFrustum()

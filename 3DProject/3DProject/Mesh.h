@@ -54,6 +54,7 @@ public:
 	vector<Material> materials;
 
 	void Draw(ShaderCreater shader);
+	void DrawDepth(ShaderCreater shader);
 };
 
 #endif // !MESH_H

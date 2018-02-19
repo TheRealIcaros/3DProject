@@ -2,7 +2,7 @@
 
 Camera::Camera()
 {
-	this->cameraPosition = { 0.0f, 0.0f, 0.0f };
+	this->cameraPosition = { 0.0f, 0.0f, 5.0f };
 	this->lookAtVector = { 0.0f, 0.0f, -1.0f };
 	this->upVector = { 0.0f, 1.0f, 0.0f };
 	this->yaw = -90.0f;

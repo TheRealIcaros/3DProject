@@ -88,3 +88,15 @@ void Mesh::Draw(ShaderCreater shader)
 
 	glActiveTexture(GL_TEXTURE0);
 }
+
+void Mesh::DrawDepth(ShaderCreater shader)
+{
+	//glUniform3f(glGetUniformLocation(shader.getShaderProgramID(), "model"), this->localPosition.x, this->localPosition.y, this->localPosition.z);
+
+	//Draw depth
+	glBindVertexArray(VAO);
+	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+
+	glActiveTexture(GL_TEXTURE0);
+}

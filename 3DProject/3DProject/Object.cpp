@@ -43,3 +43,11 @@ void Object::Draw(ShaderCreater shader)
 		this->meshes[i].Draw(shader);
 	}
 }
+
+void Object::DrawDepth(ShaderCreater shader)
+{
+	for (int i = 0; i < this->meshes.size(); i++)
+	{
+		this->meshes[i].DrawDepth(shader);
+	}
+}

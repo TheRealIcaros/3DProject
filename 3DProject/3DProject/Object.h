@@ -15,6 +15,7 @@ public:
 
 	void loadObject(const char* objPath, vec3 startPosition);
 	void Draw(ShaderCreater shader);
+	void DrawDepth(ShaderCreater shader);
 };
 
 #endif // !OBJECT_H
