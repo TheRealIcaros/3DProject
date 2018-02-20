@@ -198,14 +198,14 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 	//Create Shaders
-	//geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
-	//lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
+	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
+	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 	frustumPass.createShaders("FrustumVS", "FrustumGS", "FrustumFS");
 
-	frustum();
+	//frustum();
 
 	//Create gbuffers
-	//createGbuffer(); 
+	createGbuffer(); 
 
 	//Create UBO
 	createUBO();
@@ -377,20 +377,22 @@ void Render()
 
 	//Update Inputs
 	if (cameraSwaped == false)
+	{
 		gpuBufferData.View = camera.getView();
+	}
 	else
 	{
 		gpuBufferData.View = frustumCamera.getView();
 		
 		//Rendering forward
-		renderFrustum();
+		//renderFrustum();
 	}
 
 	//1. Geometry Pass
-	//renderGeometryPass();
-	//
+	renderGeometryPass();
+	
 	//2. Lighting Pass
-	//renderLightingPass();
+	renderLightingPass();
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
