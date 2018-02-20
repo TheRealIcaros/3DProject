@@ -10,17 +10,15 @@ layout(binding = 3, std140) uniform uniformBlock
 	mat4 Projection;
 };
 
-out vec3 FragPos;
-out vec3 FragNormal;
-out vec2 FragUV;
+out vec3 GeoPos;
+out vec3 GeoNormal;
+out vec2 GeoUV;
 
 void main()
 {
-	FragUV = vertex_tex;
+	GeoUV = vertex_tex;
 
-	FragPos = (World * vec4(vertex_position, 1.0)).xyz;
+	GeoPos = vec4(vertex_position, 1.0).xyz;
 
-	FragNormal = mat3(World) * vertex_normal;
-
-	gl_Position = (Projection * View * World) * vec4(vertex_position, 1.0);
+	GeoNormal = vertex_normal;
 }

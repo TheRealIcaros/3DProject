@@ -68,6 +68,9 @@
     </None>
     <None Include="ShadowDepthVS.glsl" />
     <None Include="ShadowDepthFS.glsl" />
+    <None Include="GeometryPassGS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
