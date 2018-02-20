@@ -55,30 +55,33 @@ Mesh::~Mesh()
 void Mesh::Draw(ShaderCreater shader)
 {
 	unsigned int diffuseNr = 1;
-	unsigned int specularNr = 1;
+	unsigned int normalNr = 1;
 	for (unsigned int i = 0; i < materials.size(); i++)
 	{
-		//activate proper texture unit before binding
-		glActiveTexture(GL_TEXTURE0 + i);
+		for (unsigned int j = 0; j < materials[i].textures.size(); j++)
+		{
+			//activate proper texture unit before binding
+			glActiveTexture(GL_TEXTURE0 + j);
 
-		//retrieve texture number (the N in diffuse_textureN)
-		stringstream ss;
-		string number;
-		string name = materials[i].type;
-		if (name == "texture_diffuse")
-			ss << diffuseNr++;
-		else if (name == "texture_specular")
-			ss << specularNr++;
-		number = ss.str();
-		
-		//Material Properties
-		glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.ambient"), 1, &materials[i].colorAmbient[0]);
-		glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.diffuse"), 1, &materials[i].colorDiffuse[0]);
-		glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.specular"), 1, &materials[i].colorSpecular[0]);
-		shader.setFloat("material.shininess", materials[i].specularExponent);
+			//retrieve texture number (the N in diffuse_textureN)
+			stringstream ss;
+			string number;
+			string name = materials[i].textures[j].type;
+			if (name == "texture_diffuse")
+				ss << diffuseNr++;
+			else if (name == "texture_normal")
+				ss << normalNr++;
+			number = ss.str();
 
-		shader.setFloat((name + number).c_str(), i);
-		glBindTexture(GL_TEXTURE_2D, materials[i].id);
+			//Material Properties
+			glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.ambient"), 1, &materials[i].colorAmbient[0]);
+			glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.diffuse"), 1, &materials[i].colorDiffuse[0]);
+			glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.specular"), 1, &materials[i].colorSpecular[0]);
+			shader.setFloat("material.shininess", materials[i].specularExponent);
+
+			shader.setFloat((name + number).c_str(), j);
+			glBindTexture(GL_TEXTURE_2D, materials[i].textures[j].id);
+		}
 	}
 
 	//Draw mesh

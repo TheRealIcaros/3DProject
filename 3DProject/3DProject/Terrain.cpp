@@ -142,8 +142,12 @@ void Terrain::sendToObject()
 	vector<Material> materials;
 	Material material;
 	material.name = "Terrain";
-	material.id = objLoader.TextureFromFile(this->texturePath.c_str());
-	material.type = "texture_diffuse";
+	Texture tempTexture;
+	tempTexture.id = objLoader.TextureFromFile(this->texturePath.c_str());
+	tempTexture.type = "texture_diffuse";
+	tempTexture.path = this->texturePath;
+	material.textures.push_back(tempTexture);
+
 	material.colorAmbient = vec3(0.5, 0.2, 0.2);
 	material.colorDiffuse = vec3(0.4, 0.8, 0.8);
 	material.colorSpecular = vec3(0.1, 0.8, 0.8);

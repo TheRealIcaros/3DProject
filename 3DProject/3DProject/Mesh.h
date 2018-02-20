@@ -28,9 +28,7 @@ struct Material
 {
 	string name;
 
-	unsigned int id;
-	string type;
-	string path;
+	vector<Texture> textures;
 
 	vec3 colorAmbient;
 	vec3 colorDiffuse;

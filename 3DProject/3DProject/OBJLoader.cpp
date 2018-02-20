@@ -125,8 +125,6 @@ bool OBJLoader::loadMTL(const char* path, const char* mtlFile, vector<Material> 
 	}
 
 	Material tempMaterial;
-	tempMaterial.path = (string)path;
-	tempMaterial.type = "texture_diffuse";
 
 	while (true)
 	{
@@ -181,7 +179,24 @@ bool OBJLoader::loadMTL(const char* path, const char* mtlFile, vector<Material> 
 			char name[128];
 			fscanf(file, "%s", &name);
 			string png = (string)path + (string)name;
-			tempMaterial.id = TextureFromFile(png.c_str());
+
+			Texture tempTexture;
+			tempTexture.id = TextureFromFile(png.c_str());
+			tempTexture.path = path;
+			tempTexture.type = "texture_diffuse";
+			tempMaterial.textures.push_back(tempTexture);
+		}
+		else if (strcmp(fileLine, "map_bump") == 0)
+		{
+			char name[128];
+			fscanf(file, "%s", &name);
+			string png = (string)path + (string)name;
+
+			Texture tempTexture;
+			tempTexture.id = TextureFromFile(png.c_str());
+			tempTexture.path = path;
+			tempTexture.type = "texture_normal";
+			tempMaterial.textures.push_back(tempTexture);
 		}
 	}
 
