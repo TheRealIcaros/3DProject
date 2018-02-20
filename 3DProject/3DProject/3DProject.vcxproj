@@ -136,6 +136,8 @@
     <None Include="LightingPassFS.glsl" />
     <None Include="LightingPassVS.glsl" />
     <None Include="GeometryPassVS.glsl" />
+    <None Include="ShadowDepthFS.glsl" />
+    <None Include="ShadowDepthVS.glsl" />
     <None Include="ShadowFS.glsl" />
     <None Include="ShadowVS.glsl" />
     <None Include="TerrainFS.glsl" />

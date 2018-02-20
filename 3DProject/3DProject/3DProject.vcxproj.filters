@@ -66,6 +66,8 @@
     <None Include="DebugDepthVS.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="ShadowDepthVS.glsl" />
+    <None Include="ShadowDepthFS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
