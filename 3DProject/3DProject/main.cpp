@@ -104,7 +104,7 @@ double lastY = HEIGHT / 2.0f;
 float FOV = 0.45f * PI;
 float aspectRatio = WIDTH / HEIGHT;
 float nearPlane = 0.10f;
-float farPlane = 13.0f;
+float farPlane = 10.0f;
 
 ////Frustum values
 //float halfHeight = tanf(DegreseToRadians * (FOV / 2.f));
@@ -242,7 +242,8 @@ int main()
 	createUBO();
 
 	//Add lights
-	lights.push_back(Light(glm::vec3(2.0, -17.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
+	lights.push_back(Light(glm::vec3(1500.0, 1500.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
+	//lights.push_back(Light(glm::vec3(2.0, -17.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
 	//lights.push_back(Light(glm::vec3(0.0, 0.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
 	//lights.push_back(Light(glm::vec3(5.0, 0.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
 
@@ -657,8 +658,9 @@ void renderShadowMapping()
 {
 	//1. First renderpass in shadow mapping
 	lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
-	lightView = glm::lookAt(lights[0].lightPos, glm::vec3(0.0), glm::vec3(0.0f, 1.0f, 0.0f));
-	//lightView = glm::lookAt(camera.getPosition(), camera.getLookAtVector(), glm::vec3(0.0f, 1.0f, 0.0f));
+	//lightProjection = glm::(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
+	//lightView = glm::lookAt(lights[0].lightPos, glm::vec3(0.0), glm::vec3(0.0f, 1.0f, 0.0f));
+	lightView = glm::lookAt(lights[0].lightPos, glm::vec3(5.0f, 10.0f, -15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	lightSpaceTransFormMatrix = lightProjection *  lightView;
 
 	glUseProgram(shadowMapPass.getShaderProgramID());
