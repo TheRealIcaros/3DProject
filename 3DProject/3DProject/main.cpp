@@ -103,8 +103,8 @@ double lastY = HEIGHT / 2.0f;
 //Projection Matrix values
 float FOV = 0.45f * PI;
 float aspectRatio = WIDTH / HEIGHT;
-float nearPlane = 1.0f;
-float farPlane = 25.0f;
+float nearPlane = 0.10f;
+float farPlane = 13.0f;
 
 ////Frustum values
 //float halfHeight = tanf(DegreseToRadians * (FOV / 2.f));
@@ -222,14 +222,11 @@ int main()
 	debugDepthPass.createShaders("DebugDepthVS", "NULL", "DebugDepthFS");
 	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
-	//geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
-	//lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
-	//frustumPass.createShaders("FrustumVS", "FrustumGS", "FrustumFS");
 
 	//frustum();
 
 	//Create Terrain
-	//terrain = Terrain(vec3(-1, -13.0, -1), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
+	terrain = Terrain(vec3(-1, -13.0, -1), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
 
 	//Object
 	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(0.0, 0.0, -3.0));
@@ -245,7 +242,7 @@ int main()
 	createUBO();
 
 	//Add lights
-	lights.push_back(Light(glm::vec3(1.0, 0.0, 1.0), glm::vec3(1.0, 1.0, 1.0)));
+	lights.push_back(Light(glm::vec3(2.0, -17.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
 	//lights.push_back(Light(glm::vec3(0.0, 0.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
 	//lights.push_back(Light(glm::vec3(5.0, 0.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
 
@@ -358,7 +355,7 @@ void processInput(GLFWwindow *window)
 		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * frustumCamera.getUpVector());	//Frustum-Camera
 
 		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);	//Collect info about terrain height
-		camera.setHeight(height + 1);	//Place camera 1 unit over the terrain
+		camera.setHeight(height + 2);	//Place camera 1 unit over the terrain
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
@@ -368,7 +365,7 @@ void processInput(GLFWwindow *window)
 		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * frustumCamera.getUpVector() * -1.0f);
 
 		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);	//Collect info about terrain height
-		camera.setHeight(height + 1);	//Place camera 1 unit over the terrain
+		camera.setHeight(height + 2);	//Place camera 1 unit over the terrain
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
@@ -376,7 +373,7 @@ void processInput(GLFWwindow *window)
 		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(frustumCamera.getLookAtVector(), frustumCamera.getUpVector())) * -1.0f);
 
 		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);	//Collect info about terrain height
-		camera.setHeight(height + 1);	//Place camera 1 unit over the terrain
+		camera.setHeight(height + 2);	//Place camera 1 unit over the terrain
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
@@ -384,7 +381,7 @@ void processInput(GLFWwindow *window)
 		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(frustumCamera.getLookAtVector(), frustumCamera.getUpVector())));
 
 		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z); //Collect info about terrain height
-		camera.setHeight(height + 1); //Place camera 1 unit over the terrain
+		camera.setHeight(height + 2); //Place camera 1 unit over the terrain
 	}
 		
 	//if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && cameraSwaped != true)
@@ -432,16 +429,16 @@ void Render()
 	}
 
 	//0.5 Terrain Pass
-	renderTerrainPass();
+	//renderTerrainPass();
 	
 	//1. Geometry Pass
-	renderGeometryPass();
+	//renderGeometryPass();
 	
 	//1.5 Shadow Pass
-	//renderShadowMapping();
+	renderShadowMapping();
 
 	//2. Lighting Pass
-	renderLightingPass();
+	//renderLightingPass();
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -594,19 +591,19 @@ void renderTerrainPass()
 
 	terrain.Draw(terrainPass);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void renderGeometryPass()
 {
 	//Use GeometryPass Shader Program
 	glUseProgram(geometryPass.getShaderProgramID());
-	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//Bind UBO for sending GPU data to GeometryPass Program
-	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
+	////Bind UBO for sending GPU data to GeometryPass Program
+	//glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+	//glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
 
 	objects.Draw(geometryPass);
 
@@ -661,6 +658,7 @@ void renderShadowMapping()
 	//1. First renderpass in shadow mapping
 	lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
 	lightView = glm::lookAt(lights[0].lightPos, glm::vec3(0.0), glm::vec3(0.0f, 1.0f, 0.0f));
+	//lightView = glm::lookAt(camera.getPosition(), camera.getLookAtVector(), glm::vec3(0.0f, 1.0f, 0.0f));
 	lightSpaceTransFormMatrix = lightProjection *  lightView;
 
 	glUseProgram(shadowMapPass.getShaderProgramID());
