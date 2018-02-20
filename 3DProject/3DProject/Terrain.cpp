@@ -159,6 +159,11 @@ void Terrain::Draw(ShaderCreater shader)
 	this->terrain.Draw(shader);
 }
 
+void Terrain::DrawDepth(ShaderCreater shader)
+{
+	this->terrain.DrawDepth(shader);
+}
+
 float Terrain::getHeightOfTerrain(float worldX, float worldZ)
 {
 	float terrainX = worldX - this->terrainPosition.x;

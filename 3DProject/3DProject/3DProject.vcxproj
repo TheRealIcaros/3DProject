@@ -126,9 +126,15 @@
   <ItemGroup>
     <None Include="DebugDepthFS.glsl" />
     <None Include="DebugDepthVS.glsl" />
-    <None Include="FrustumFS.glsl" />
-    <None Include="FrustumGS.glsl" />
-    <None Include="FrustumVS.glsl" />
+    <None Include="FrustumFS.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="FrustumGS.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="FrustumVS.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
     <None Include="GeometryPassFS.glsl" />
     <None Include="GeometryShader.glsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
