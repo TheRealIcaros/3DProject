@@ -2,7 +2,7 @@
 
 Camera::Camera()
 {
-	this->cameraPosition = { 0.0f, 0.0f, 0.0f };
+	this->cameraPosition = { 0.0f, 0.0f, 5.0f };
 	this->lookAtVector = { 0.0f, 0.0f, -1.0f };
 	this->upVector = { 0.0f, 1.0f, 0.0f };
 	this->yaw = -90.0f;
@@ -119,4 +119,16 @@ glm::vec3 Camera::getUpVector()const
 glm::vec3 Camera::getPosition()const
 {
 	return this->cameraPosition;
+}
+
+void Camera::setPosition(glm::vec3 position)
+{
+	this->cameraPosition = position;
+	this->View = glm::lookAt(this->cameraPosition, this->cameraPosition + this->lookAtVector, this->upVector);
+}
+
+void Camera::setHeight(float Y)
+{
+	this->cameraPosition.y = Y;
+	this->View = glm::lookAt(this->cameraPosition, this->cameraPosition + this->lookAtVector, this->upVector);
 }
