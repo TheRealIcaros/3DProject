@@ -27,6 +27,14 @@ void Mesh::setupMesh()
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
 
+	//tangent coords
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
+
+	//bitangent coords
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
+
 	glBindVertexArray(0);
 }
 
@@ -58,6 +66,12 @@ void Mesh::Draw(ShaderCreater shader)
 	unsigned int normalNr = 1;
 	for (unsigned int i = 0; i < materials.size(); i++)
 	{
+		//Material Properties
+		glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.ambient"), 1, &materials[i].colorAmbient[0]);
+		glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.diffuse"), 1, &materials[i].colorDiffuse[0]);
+		glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.specular"), 1, &materials[i].colorSpecular[0]);
+		shader.setFloat("material.shininess", materials[i].specularExponent);
+
 		for (unsigned int j = 0; j < materials[i].textures.size(); j++)
 		{
 			//activate proper texture unit before binding
@@ -72,14 +86,9 @@ void Mesh::Draw(ShaderCreater shader)
 			else if (name == "texture_normal")
 				ss << normalNr++;
 			number = ss.str();
-
-			//Material Properties
-			glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.ambient"), 1, &materials[i].colorAmbient[0]);
-			glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.diffuse"), 1, &materials[i].colorDiffuse[0]);
-			glUniform3fv(glGetUniformLocation(shader.getShaderProgramID(), "material.specular"), 1, &materials[i].colorSpecular[0]);
-			shader.setFloat("material.shininess", materials[i].specularExponent);
-
-			shader.setFloat((name + number).c_str(), j);
+			
+			GLuint pos = glGetUniformLocation(shader.getShaderProgramID(), (name + number).c_str());
+			glUniform1i(pos, j);
 			glBindTexture(GL_TEXTURE_2D, materials[i].textures[j].id);
 		}
 	}
@@ -88,6 +97,4 @@ void Mesh::Draw(ShaderCreater shader)
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
-
-	glActiveTexture(GL_TEXTURE0);
 }

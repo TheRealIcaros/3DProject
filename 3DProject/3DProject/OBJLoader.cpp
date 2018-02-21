@@ -8,7 +8,7 @@ OBJLoader::~OBJLoader()
 {
 }
 
-bool OBJLoader::loadOBJ(const char* objPath, vector<vec3> &vertices, vector<vec2> &uvs, vector<vec3> &normals, vector<Material> &materials)
+bool OBJLoader::loadOBJ(const char* objPath, vector<vec3> &vertices, vector<vec2> &uvs, vector<vec3> &normals, vector<vec3> &tangent, vector<Material> &materials)
 {
 	string directory = objPath;
 	directory = directory.substr(0, directory.find_last_of("/") + 1);
@@ -109,6 +109,31 @@ bool OBJLoader::loadOBJ(const char* objPath, vector<vec3> &vertices, vector<vec2
 		unsigned int normalIndex = normalIndices[i];
 		vec3 normal = tempNormals[normalIndex - 1];
 		normals.push_back(normal);
+	}
+
+	//Tangent
+	for (unsigned int i = 0; i < vertices.size(); i += 3)
+	{
+		vec3 p0 = vertices[i];
+		vec3 p1 = vertices[i + 1];
+		vec3 p2 = vertices[i + 2];
+
+		vec2 t0 = uvs[i];
+		vec2 t1 = uvs[i + 1];
+		vec2 t2 = uvs[i + 2];
+
+		vec3 deltaPos1 = p1 - p0;
+		vec3 deltaPos2 = p2 - p0;
+
+		vec2 deltaUv1 = t1 - t0;
+		vec2 deltaUv2 = t2 - t0;
+
+		float r = 1 / (deltaUv1.x * deltaUv2.y - deltaUv1.y * deltaUv2.x);
+
+		vec3 tempTangent = (deltaPos1 * deltaPos2.y - deltaPos2 * deltaPos1.y) * r;
+		tangent.push_back(tempTangent);
+		tangent.push_back(tempTangent);
+		tangent.push_back(tempTangent);
 	}
 
 	return true;

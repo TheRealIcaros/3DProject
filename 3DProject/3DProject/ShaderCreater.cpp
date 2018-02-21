@@ -142,7 +142,7 @@ void ShaderCreater::createShaders(std::string vertexShader, std::string geometry
 	glDeleteShader(fs);
 }
 
-void ShaderCreater::setFloat(std::string name, int value) const
+void ShaderCreater::setFloat(std::string name, float value) const
 {
 	glUniform1f(glGetUniformLocation(this->programID, name.c_str()), value);
 }
