@@ -1,13 +1,8 @@
 #version 430
-
-//Values from the g-buffer
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gColorSpec;
 uniform sampler2D gColorInfo;
-
-//The shadowmap/depthmap
-uniform sampler2D depthMap;
 
 in vec2 textureCoordinates;
 out vec4 FragColor;

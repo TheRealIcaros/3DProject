@@ -4,8 +4,6 @@ layout(location = 1) in vec2 vertex_tex;
 
 out vec2 textureCoordinates;
 
-
-
 void main()
 {
 	textureCoordinates = vertex_tex;

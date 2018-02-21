@@ -104,7 +104,10 @@ double lastY = HEIGHT / 2.0f;
 float FOV = 0.45f * PI;
 float aspectRatio = WIDTH / HEIGHT;
 float nearPlane = 0.10f;
-float farPlane = 10.0f;
+float farPlane = 50.0f;
+float shadowNearPlane = 0.10f;
+float shadowFarPlane = 10.0f;
+
 
 ////Frustum values
 //float halfHeight = tanf(DegreseToRadians * (FOV / 2.f));
@@ -229,8 +232,10 @@ int main()
 	terrain = Terrain(vec3(-1, -13.0, -1), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
 
 	//Object
-	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(0.0, 0.0, -3.0));
-	objects.loadObject("../Models/Box/box.obj", glm::vec3(0.0, 0.0, -5.0));
+	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(6.0, -12.0, 5.0));
+	objects.loadObject("../Models/Box/box.obj", vec3(4.0, -12.0, 5.0));
+	//glm::vec3(0.0, 0.0, 5.0);
+	//vec3(0.0, 0.0, -3.0)
 
 	//Create gbuffers
 	createGbuffer(); 
@@ -242,7 +247,7 @@ int main()
 	createUBO();
 
 	//Add lights
-	lights.push_back(Light(glm::vec3(1500.0, 1500.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
+	lights.push_back(Light(glm::vec3(1.0, -10.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
 	//lights.push_back(Light(glm::vec3(2.0, -17.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
 	//lights.push_back(Light(glm::vec3(0.0, 0.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
 	//lights.push_back(Light(glm::vec3(5.0, 0.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
@@ -430,16 +435,16 @@ void Render()
 	}
 
 	//0.5 Terrain Pass
-	//renderTerrainPass();
+	renderTerrainPass();
 	
 	//1. Geometry Pass
-	//renderGeometryPass();
+	renderGeometryPass();
 	
 	//1.5 Shadow Pass
-	renderShadowMapping();
+	//renderShadowMapping();
 
 	//2. Lighting Pass
-	//renderLightingPass();
+	renderLightingPass();
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -635,6 +640,9 @@ void renderLightingPass()
 	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gColorInfo"), 3);
 	glBindTexture(GL_TEXTURE_2D, gColorInfo);
 
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, depthMap);
+
 	//Lights
 	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "nrOfLights"), lights.size());
 	for (unsigned int i = 0; i < lights.size(); i++)
@@ -657,10 +665,10 @@ void renderLightingPass()
 void renderShadowMapping()
 {
 	//1. First renderpass in shadow mapping
-	lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
+	lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, shadowNearPlane, shadowFarPlane);
 	//lightProjection = glm::(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
 	//lightView = glm::lookAt(lights[0].lightPos, glm::vec3(0.0), glm::vec3(0.0f, 1.0f, 0.0f));
-	lightView = glm::lookAt(lights[0].lightPos, glm::vec3(5.0f, 10.0f, -15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	lightView = glm::lookAt(lights[0].lightPos, glm::vec3(5.0f, -10.0f, -15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	lightSpaceTransFormMatrix = lightProjection *  lightView;
 
 	glUseProgram(shadowMapPass.getShaderProgramID());
@@ -670,8 +678,8 @@ void renderShadowMapping()
 	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT); //This sets the viewport to the shadow-mappings resolution
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	glClear(GL_DEPTH_BUFFER_BIT); //This clears the depth buffer
-	terrain.DrawDepth(shadowMapPass);
-	//objects.DrawDepth(shadowMapPass);
+	terrain.DrawDepth(shadowMapPass); //Maybe it will be in the final version
+	objects.DrawDepth(shadowMapPass);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	//Reset Viewport
