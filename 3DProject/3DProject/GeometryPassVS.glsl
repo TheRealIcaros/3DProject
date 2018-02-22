@@ -12,21 +12,18 @@ layout(binding = 3, std140) uniform uniformBlock
 	mat4 Projection;
 };
 
-out vec3 FragPos;
-out vec3 FragNormal;
-out vec2 FragUV;
-out vec3 FragTangent;
-out vec3 FragBitangent;
-
-uniform mat4 Model;
+out vec3 GeoPos;
+out vec3 GeoNormal;
+out vec2 GeoUV;
+out vec3 GeoTangent;
+out vec3 GeoBitangent;
 
 void main()
 {
-	FragUV = vertex_tex;
-	FragPos = (Model * vec4(vertex_position, 1.0)).xyz;
-	FragNormal = vertex_normal;
-	gl_Position = (Projection * View * Model) * vec4(vertex_position, 1.0);
+	GeoUV = vertex_tex;
+	GeoPos = vertex_position;
+	GeoNormal = vertex_normal;
 
-	FragTangent = (Model * vec4(vertex_tangent, 0.0)).xyz;
-	FragBitangent = (Model * vec4(vertex_bitangent, 0.0)).xyz;
+	GeoTangent = vertex_tangent;
+	GeoBitangent = vertex_bitangent;
 }

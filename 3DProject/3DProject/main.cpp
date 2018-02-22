@@ -174,7 +174,7 @@ int main()
 
 	//Create Shaders
 	terrainPass.createShaders("TerrainVS", "TerrainGS", "TerrainFS");
-	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
+	geometryPass.createShaders("GeometryPassVS", "GeometryPassGS", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 
 	//Create Terrain
@@ -182,7 +182,7 @@ int main()
 
 	//Object
 	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(26.0, 0.0, 9.0));
-	objects.loadObject("../Models/Box/box.obj", glm::vec3(25.0, -1.0, 11.0));
+	objects.loadObject("../Models/Box/box.obj", glm::vec3(25.0, 0.0, 11.0));
 
 	//Create gbuffers
 	createGbuffer(); 
@@ -582,6 +582,7 @@ void renderGeometryPass()
 	/*glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);*/
 
+	glUniform3fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "cameraPos"), 1, &camera.getPosition()[0]);
 	objects.Draw(geometryPass);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
