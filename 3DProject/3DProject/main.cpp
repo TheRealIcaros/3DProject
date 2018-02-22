@@ -595,6 +595,7 @@ void renderTerrainPass()
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
 
+	glUniform1f(glGetUniformLocation(terrainPass.getShaderProgramID(), "cameraPos"), camera.getPosition()[0]);
 	terrain.Draw(terrainPass);
 
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
