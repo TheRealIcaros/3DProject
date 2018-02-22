@@ -19,6 +19,9 @@ uniform float weight[kernelSize] = float[](
 	0.038265
 	);
 
+//Kernel weight found here
+//http://dev.theomader.com/gaussian-kernel-calculator/
+
 void main()
 {
 	vec2 tex_offset = 1.0 / textureSize(input, 0); // gets the size of the texture pixels

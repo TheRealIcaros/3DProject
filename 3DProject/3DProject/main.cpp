@@ -399,13 +399,13 @@ void processInput(GLFWwindow *window)
 	}
 
 	//View inputs	// Forward and back in camera xyz coord
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	/*if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()));
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()) * -1.0f);
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()) * -1.0f);*/
 
 	//new View inputs for walking on terrain
-	/*if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
 		vec3 lookAt = camera.getLookAtVector();
 		lookAt.y = 0;
@@ -426,12 +426,12 @@ void processInput(GLFWwindow *window)
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())) * -1.0f);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())));*/
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())));
 
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	/*if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);*/
 
 	if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
 		if (!bloomKey)
