@@ -36,18 +36,6 @@
     <None Include="GeometryPassFS.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="GaussVS.glsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="GaussFS.glsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="glowVS.glsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="glowFS.glsl">
-      <Filter>Shaders</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
