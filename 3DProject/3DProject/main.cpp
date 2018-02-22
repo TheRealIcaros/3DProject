@@ -640,8 +640,10 @@ void renderLightingPass()
 	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gColorInfo"), 3);
 	glBindTexture(GL_TEXTURE_2D, gColorInfo);
 
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, depthMap);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+
+	glUniformMatrix4fv(glGetUniformLocation(lightingPass.getShaderProgramID(), "lightSpaceMatrix"), 1, GL_FALSE, &lightSpaceTransFormMatrix[0][0]);
 
 	//Lights
 	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "nrOfLights"), lights.size());
@@ -687,10 +689,10 @@ void renderShadowMapping()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // This clears both the color buffer and the depth buffer
 
 	//2. Second renderpass in shadow mapping
-	glUseProgram(debugDepthPass.getShaderProgramID());
+	/*glUseProgram(debugDepthPass.getShaderProgramID());
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, depthMap); 
-	renderQuad();
+	renderQuad();*/
 }
 
 //void renderFrustum()
