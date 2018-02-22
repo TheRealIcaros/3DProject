@@ -46,3 +46,30 @@ void Object::Draw(ShaderCreater shader)
 		this->meshes[i].Draw(shader);
 	}
 }
+
+void Object::Sort(vec3 cameraPos)
+{
+	bool sorted = false;
+	int nrModels = this->meshes.size();
+	vector<float> distances(nrModels);
+	vec3 cam_pos = cameraPos;
+
+	for (int i = 0; i < nrModels; i++)
+	{
+		distances[i] = distance(cam_pos, meshes[i].getModelPosition());
+	}
+
+	while (!sorted)
+	{
+		sorted = true;
+		for (int i = 0; i < nrModels - 1; i++)
+		{
+			if (distances[i] > distances[i + 1])
+			{
+				swap(meshes[i], meshes[i + 1]);
+				swap(distances[i], distances[i + 1]);
+				sorted = false;
+			}
+		}
+	}
+}

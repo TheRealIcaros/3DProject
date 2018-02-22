@@ -33,17 +33,24 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 //GLuint loadBMPTexture(const char* texturePath, GLuint &textureID);
 void createUBO();
 void createGbuffer();
+void createGaussBuffer();
+void createLightBuffer();
 void createDepthMapFBO();
 void renderQuad();
 void renderTerrainPass();
 void renderGeometryPass();
 void renderLightingPass();
 void renderShadowMapping();
-  
+void renderBlurPass();
+void renderMergePass();
+
+
 //Shader
 ShaderCreater terrainPass;
 ShaderCreater geometryPass;
 ShaderCreater lightingPass;
+ShaderCreater gaussPass;
+ShaderCreater mergePass;
 
 //Lights
 struct Light
@@ -88,7 +95,15 @@ GLuint textureID2;
 
 //gbuffer
 unsigned int gBuffer, gPosition, gNormal, gColorSpec, gColorInfo;
-unsigned int attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+//lightbuffer
+unsigned int lBuffer, lColor, lGlow;
+// Glow textures
+unsigned int pingPongFBO[2], pingPongBuff[2];
+
+//
+bool bloomKey = false;
+bool glowKey = false;
+bool intensityKey = false;
 
 //My Camera
 Camera camera;
@@ -176,6 +191,8 @@ int main()
 	terrainPass.createShaders("TerrainVS", "TerrainGS", "TerrainFS");
 	geometryPass.createShaders("GeometryPassVS", "GeometryPassGS", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
+	gaussPass.createShaders("GaussVS", "NULL", "GaussFS");
+	mergePass.createShaders("MergeVS", "NULL", "MergeFS");
 
 	//Create Terrain
 	terrain = Terrain(vec3(-1, -13, -1), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
@@ -184,8 +201,11 @@ int main()
 	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(26.0, 0.0, 9.0));
 	objects.loadObject("../Models/Box/box.obj", glm::vec3(25.0, 0.0, 11.0));
 
-	//Create gbuffers
+	//Create buffers
 	createGbuffer(); 
+	createLightBuffer();
+	createGaussBuffer();
+
 
 	//Create UBO
 	createUBO();
@@ -194,7 +214,12 @@ int main()
 	//setTriangleData();
 
 	//Add lights
-	lights.push_back(Light(glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
+	//lights.push_back(Light(glm::vec3(26.0, 5.0, 9.0), glm::vec3(1.0, 1.0, 1.0)));
+	lights.push_back(Light(glm::vec3(0.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 1.0)));
+	lights.push_back(Light(glm::vec3(0.0, 0.0, 5.0), glm::vec3(0.0, 1.0, 0.0)));
+	lights.push_back(Light(glm::vec3(5.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0)));
+
+	lights.push_back(Light(glm::vec3(0.0, 5.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
 
 	//Cursor Disabled/non-visible
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -210,6 +235,9 @@ int main()
 
 		//Check inputs
 		processInput(window);
+
+		//Sorts the models
+		objects.Sort(camera.getPosition());
 
 		//Render
 		Render();
@@ -371,13 +399,13 @@ void processInput(GLFWwindow *window)
 	}
 
 	//View inputs	// Forward and back in camera xyz coord
-	/*if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()));
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()) * -1.0f);*/
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()) * -1.0f);
 
 	//new View inputs for walking on terrain
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	/*if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
 		vec3 lookAt = camera.getLookAtVector();
 		lookAt.y = 0;
@@ -398,7 +426,40 @@ void processInput(GLFWwindow *window)
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())) * -1.0f);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())));
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())));*/
+
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);
+
+	if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
+		if (!bloomKey)
+		{
+			bloomKey = !bloomKey;
+		}
+	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+		if (!glowKey)
+		{
+			glowKey = !glowKey;
+		}
+	if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
+		if (!intensityKey)
+		{
+			intensityKey = !intensityKey;
+		}
+	if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
+	{
+		bloomKey = false;
+		glowKey = false;
+		intensityKey = false;
+	}
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+	{
+		bloomKey = !false;
+		glowKey = !false;
+		intensityKey = !false;
+	}
 
 	/*if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
@@ -422,6 +483,12 @@ void Render()
 
 	//2. Lighting Pass
 	renderLightingPass();
+
+	//3. Blurr Pass
+	renderBlurPass();
+
+	//4. Merge Pass
+	renderMergePass();
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -496,6 +563,8 @@ void createGbuffer()
 
 	//tell OPENGL which color vi ska använda (av denna framebuffer) for rendering på svenska
 	//TOP OF THE KOD
+
+	unsigned int attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
 	glDrawBuffers(4, attachments);
 	//add djupbufé 
 
@@ -504,6 +573,52 @@ void createGbuffer()
 	glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, WIDTH, HEIGHT);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+}
+
+void createGaussBuffer()
+{
+	// Blurring that will later become glow relevant in merge
+	glGenFramebuffers(2, pingPongFBO);
+	glGenTextures(2, pingPongBuff);
+	for (unsigned int i = 0; i < 2; i++)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, pingPongFBO[i]);
+		glBindTexture(GL_TEXTURE_2D, pingPongBuff[i]);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingPongBuff[i], 0);
+	}
+}
+
+void createLightBuffer()
+{
+	glGenFramebuffers(1, &lBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, lBuffer);
+
+
+	//position color buffer
+	glGenTextures(1, &lColor);
+	glBindTexture(GL_TEXTURE_2D, lColor);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, lColor, 0);
+
+	//normal color buffer
+	glGenTextures(1, &lGlow);
+	glBindTexture(GL_TEXTURE_2D, lGlow);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, lGlow, 0);
+
+	unsigned int attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, attachments);
 }
 
 void createDepthMapFBO()
@@ -588,8 +703,10 @@ void renderGeometryPass()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+
 void renderLightingPass()
 {
+	glBindFramebuffer(GL_FRAMEBUFFER, lBuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//Use LightingPass Shader Program
@@ -597,23 +714,24 @@ void renderLightingPass()
 
 	//	Bind all gBufferTextures
 	glActiveTexture(GL_TEXTURE0);
-	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gPosition"), 0);
 	glBindTexture(GL_TEXTURE_2D, gPosition);
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gPosition"), 0);
 
 	glActiveTexture(GL_TEXTURE1);
-	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gNormal"), 1);
 	glBindTexture(GL_TEXTURE_2D, gNormal);
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gNormal"), 1);
 
 	glActiveTexture(GL_TEXTURE2);
-	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gColorSpec"), 2);
 	glBindTexture(GL_TEXTURE_2D, gColorSpec);
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gColorSpec"), 2);
 
 	glActiveTexture(GL_TEXTURE3);
 	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gColorInfo"), 3);
 	glBindTexture(GL_TEXTURE_2D, gColorInfo);
 
-	//Lights
-	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "nrOfLights"), lights.size());
+	//	TODO:(Fix multiple lights and send it to LightingPassFS)
+	GLuint lightPos = glGetUniformLocation(lightingPass.getShaderProgramID(), "nrOfLights");
+	glUniform1i(lightPos, lights.size());
 	for (int i = 0; i < lights.size(); i++)
 	{
 		string lightPos = "lights[" + std::to_string(i) + "].Position";
@@ -625,7 +743,56 @@ void renderLightingPass()
 
 	glUniform3f(glGetUniformLocation(lightingPass.getShaderProgramID(), "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
 
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "glowKey"), glowKey);
+	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "intensityKey"), intensityKey);
+
+
 	//Render To Quad
+	renderQuad();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+//blur pass
+void renderBlurPass()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, pingPongFBO[0]);
+	glUseProgram(gaussPass.getShaderProgramID());
+	glUniform1i(glGetUniformLocation(gaussPass.getShaderProgramID(), "input"), 0);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, lGlow);
+
+	glUniform1i(glGetUniformLocation(gaussPass.getShaderProgramID(), "horizontal"), 0);
+
+	renderQuad();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, pingPongFBO[1]);
+	glBindTexture(GL_TEXTURE_2D, pingPongBuff[0]);
+	glUniform1i(glGetUniformLocation(gaussPass.getShaderProgramID(), "horizontal"), 1);
+
+	renderQuad();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+}
+
+void renderMergePass()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glUseProgram(mergePass.getShaderProgramID());
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, lColor);
+	glUniform1i(glGetUniformLocation(mergePass.getShaderProgramID(), "lColor"), 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, pingPongBuff[1]);
+	glUniform1i(glGetUniformLocation(mergePass.getShaderProgramID(), "lGlow"), 1);
+
+	glUniform1i(glGetUniformLocation(mergePass.getShaderProgramID(), "bloomKey"), bloomKey);
+
 	renderQuad();
 }
 

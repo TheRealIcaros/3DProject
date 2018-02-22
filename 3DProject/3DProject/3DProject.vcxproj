@@ -124,6 +124,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="GaussFS.glsl" />
+    <None Include="GaussVS.glsl" />
     <None Include="GeometryPassFS.glsl" />
     <None Include="GeometryPassGS.glsl" />
     <None Include="GeometryShader.glsl">
@@ -132,6 +134,8 @@
     <None Include="LightingPassFS.glsl" />
     <None Include="LightingPassVS.glsl" />
     <None Include="GeometryPassVS.glsl" />
+    <None Include="MergeFS.glsl" />
+    <None Include="MergeVS.glsl" />
     <None Include="TerrainFS.glsl" />
     <None Include="TerrainGS.glsl" />
     <None Include="TerrainVS.glsl" />

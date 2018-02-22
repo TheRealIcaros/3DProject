@@ -61,6 +61,11 @@ Mesh::~Mesh()
 
 }
 
+vec3 Mesh::getModelPosition()
+{
+	return this->localPosition;
+}
+
 void Mesh::Draw(ShaderCreater shader)
 {
 	unsigned int diffuseNr = 1;

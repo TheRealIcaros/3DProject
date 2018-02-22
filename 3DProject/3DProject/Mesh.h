@@ -54,6 +54,8 @@ public:
 	vector<unsigned int> indices;
 	vector<Material> materials;
 
+	vec3 getModelPosition();
+
 	void Draw(ShaderCreater shader);
 };
 

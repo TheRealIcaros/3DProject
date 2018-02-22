@@ -5,7 +5,9 @@ uniform sampler2D gColorSpec;
 uniform sampler2D gColorInfo;
 
 in vec2 textureCoordinates;
-out vec4 FragColor;
+//out vec4 FragColor;
+layout(location = 0) out vec4 lColor;
+layout(location = 1) out vec4 lGlow;
 
 struct Light {
 	vec3 Position;
@@ -16,7 +18,8 @@ uniform int nrOfLights;
 const int lightNr = 16;		//Maximum of 16 lights in light vector array in CPU!!!
 uniform Light lights[lightNr];
 uniform vec3 viewPos;
-
+uniform bool glowKey;
+uniform bool intensityKey;
 void main()
 {
 	//Get Data from gBuffer
@@ -62,5 +65,45 @@ void main()
 	}
 	
 	//FragOut
-	FragColor = vec4(result, 1.0);
+	lColor = vec4(result, 1.0);
+
+	float brightness = dot(lColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+	if (!intensityKey)
+	{
+		if (!glowKey)
+		{
+			if (brightness > 1.0) //lower for more glow on everything. Nice test results.
+			{
+				lGlow = vec4(lColor.rgb, 1.0);
+			}
+			else
+			{
+				lGlow = vec4(0.0, 0.0, 0.0, 1.0);
+			}
+
+		}
+		else
+		{
+			lGlow = vec4(Color, 1.0);
+		}
+	}
+	else
+	{
+		if (!glowKey)
+		{
+			if (brightness > 0.5) //lower for more glow on everything. Nice test results.
+			{
+				lGlow = vec4(lColor.rgb, 1.0);
+			}
+			else
+			{
+				lGlow = vec4(0.0, 0.0, 0.0, 1.0);
+			}
+
+		}
+		else
+		{
+			lGlow = vec4(Color, 1.0);
+		}
+	}
 }
