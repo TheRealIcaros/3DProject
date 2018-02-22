@@ -16,6 +16,7 @@ struct Material {
 	vec3 specular;
 	float shininess;
 };
+
 uniform Material material;
 
 uniform sampler2D depthMap;

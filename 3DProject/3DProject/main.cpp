@@ -38,7 +38,7 @@ void renderShadowMapping();
 //Shader
 ShaderCreater terrainPass;
 ShaderCreater shadowMapPass;
-ShaderCreater shadowRenderPath;
+//ShaderCreater shadowRenderPath;
 ShaderCreater debugDepthPass;
 ShaderCreater geometryPass;
 ShaderCreater lightingPass;
@@ -221,7 +221,7 @@ int main()
 	//Create Shaders
 	terrainPass.createShaders("TerrainVS", "TerrainGS", "TerrainFS"); 
 	shadowMapPass.createShaders("ShadowVS", "NULL", "ShadowFS");
-	shadowRenderPath.createShaders("ShadowDepthVS", "NULL", "ShadowDepthFS");
+	//shadowRenderPath.createShaders("ShadowDepthVS", "NULL", "ShadowDepthFS");
 	debugDepthPass.createShaders("DebugDepthVS", "NULL", "DebugDepthFS");
 	geometryPass.createShaders("GeometryPassVS", "NULL", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
@@ -433,6 +433,7 @@ void Render()
 		//Rendering forward
 		//renderFrustum();
 	}
+	
 	//1.5 Shadow Pass
 	renderShadowMapping();
 
@@ -441,7 +442,7 @@ void Render()
 
 	//1. Geometry Pass
 	renderGeometryPass();
-	
+
 	//2. Lighting Pass
 	renderLightingPass();
 }
@@ -614,7 +615,7 @@ void renderGeometryPass()
 	glUniformMatrix4fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "lightSpaceMatrix"), 1, GL_FALSE, &lightSpaceTransFormMatrix[0][0]);
 
 	glActiveTexture(GL_TEXTURE0);
-	//glUniform1i(glGetUniformLocation(geometryPass.getShaderProgramID(), "depthMap"), 0);
+	glUniform1i(glGetUniformLocation(geometryPass.getShaderProgramID(), "depthMap"), 0);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
 
 	objects.Draw(geometryPass);
