@@ -232,8 +232,8 @@ int main()
 	terrain = Terrain(vec3(-1, -13.0, -1), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
 
 	//Object
-	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(6.0, -12.0, 5.0));
-	objects.loadObject("../Models/Box/box.obj", vec3(4.0, -12.0, 5.0));
+	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(6.0, -12.0, 6.0));
+	objects.loadObject("../Models/Box/box.obj", vec3(4.0, -12.0, 6.0));
 	//glm::vec3(0.0, 0.0, 5.0);
 	//vec3(0.0, 0.0, -3.0)
 
@@ -247,7 +247,7 @@ int main()
 	createUBO();
 
 	//Add lights
-	lights.push_back(Light(glm::vec3(1.0, -10.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
+	lights.push_back(Light(glm::vec3(5.0, -8.0, 10.0), glm::vec3(1.0, 1.0, 1.0)));
 	//lights.push_back(Light(glm::vec3(2.0, -17.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
 	//lights.push_back(Light(glm::vec3(0.0, 0.0, 5.0), glm::vec3(1.0, 1.0, 1.0)));
 	//lights.push_back(Light(glm::vec3(5.0, 0.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
@@ -433,16 +433,15 @@ void Render()
 		//Rendering forward
 		//renderFrustum();
 	}
+	//1.5 Shadow Pass
+	renderShadowMapping();
 
 	//0.5 Terrain Pass
 	renderTerrainPass();
-	
+
 	//1. Geometry Pass
 	renderGeometryPass();
 	
-	//1.5 Shadow Pass
-	//renderShadowMapping();
-
 	//2. Lighting Pass
 	renderLightingPass();
 }
@@ -500,7 +499,7 @@ void createGbuffer()
 	//normal color buffer
 	glGenTextures(1, &gNormal);
 	glBindTexture(GL_TEXTURE_2D, gNormal);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, WIDTH, HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
@@ -612,6 +611,12 @@ void renderGeometryPass()
 	//glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	//glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
 
+	glUniformMatrix4fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "lightSpaceMatrix"), 1, GL_FALSE, &lightSpaceTransFormMatrix[0][0]);
+
+	glActiveTexture(GL_TEXTURE0);
+	//glUniform1i(glGetUniformLocation(geometryPass.getShaderProgramID(), "depthMap"), 0);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+
 	objects.Draw(geometryPass);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -641,11 +646,7 @@ void renderLightingPass()
 	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "gColorInfo"), 3);
 	glBindTexture(GL_TEXTURE_2D, gColorInfo);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-
-	glUniformMatrix4fv(glGetUniformLocation(lightingPass.getShaderProgramID(), "lightSpaceMatrix"), 1, GL_FALSE, &lightSpaceTransFormMatrix[0][0]);
-
+	
 	//Lights
 	glUniform1i(glGetUniformLocation(lightingPass.getShaderProgramID(), "nrOfLights"), lights.size());
 	for (unsigned int i = 0; i < lights.size(); i++)
@@ -681,7 +682,7 @@ void renderShadowMapping()
 	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT); //This sets the viewport to the shadow-mappings resolution
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	glClear(GL_DEPTH_BUFFER_BIT); //This clears the depth buffer
-	terrain.DrawDepth(shadowMapPass); //Maybe it will be in the final version
+	//terrain.DrawDepth(shadowMapPass); //Maybe it will be in the final version
 	objects.DrawDepth(shadowMapPass);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -690,10 +691,10 @@ void renderShadowMapping()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // This clears both the color buffer and the depth buffer
 
 	//2. Second renderpass in shadow mapping
-	/*glUseProgram(debugDepthPass.getShaderProgramID());
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, depthMap); 
-	renderQuad();*/
+	//glUseProgram(debugDepthPass.getShaderProgramID());
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, depthMap); 
+	//renderQuad();
 }
 
 //void renderFrustum()

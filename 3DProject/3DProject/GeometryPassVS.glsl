@@ -10,15 +10,20 @@ layout(binding = 3, std140) uniform uniformBlock
 	mat4 Projection;
 };
 
+uniform mat4 lightSpaceMatrix;
+
 out vec3 FragPos;
 out vec3 FragNormal;
 out vec2 FragUV;
+out vec4 fragLightSpace;
 
 void main()
 {
 	FragUV = vertex_tex;
 
 	FragPos = (World * vec4(vertex_position, 1.0)).xyz;
+
+	fragLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
 
 	FragNormal = mat3(World) * vertex_normal;
 

@@ -10,7 +10,6 @@ uniform sampler2D gColorInfo;
 uniform sampler2D depthMap;
 
 in vec2 textureCoordinates;
-out vec4 FragColor;
 
 struct Light {
 	vec3 Position;
@@ -22,12 +21,18 @@ const int lightNr = 16;		//Maximum of 16 lights in light vector array in CPU!!!
 uniform Light lights[lightNr];
 uniform vec3 viewPos;
 
+out vec4 FragColor;
+
 void main()
 {
 	//Get Data from gBuffer
 	vec3 FragPos = texture(gPosition, textureCoordinates).rgb;
 	vec3 Normal = texture(gNormal, textureCoordinates).rgb;
 	vec3 Color = texture(gColorSpec, textureCoordinates).rgb;
+
+	//ShadowInfo
+	float shadow = texture(gNormal, textureCoordinates).a;
+
 
 	//Material info
 	float mAmbient = texture(gColorInfo, textureCoordinates).r;
@@ -42,9 +47,11 @@ void main()
 	vec3 viewDir = normalize(viewPos - FragPos);
 	vec3 lightDir;
 	vec3 reflectDir;
+
+	//vec3 result = (ambient + (1.0 - shadow)) * Color;
 	vec3 result = ambient * Color;
-	
-	for (int i = 0; i < nrOfLights; i++)
+
+	for (int i = 0; i < 1; i++)
 	{
 		lightDir = normalize(lights[i].Position - FragPos);
 		reflectDir = reflect(-lightDir, Normal);
@@ -63,7 +70,8 @@ void main()
 		//specular *= attenuation;
 
 		//Result
-		result += diffuse + specular;
+		result += ((1.0 - shadow) * (diffuse + specular));
+		//result += diffuse + specular;
 	}
 	
 	//FragOut
