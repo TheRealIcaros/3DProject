@@ -8,7 +8,7 @@ OBJLoader::~OBJLoader()
 {
 }
 
-bool OBJLoader::loadOBJ(const char* objPath, vector<vec3> &vertices, vector<vec2> &uvs, vector<vec3> &normals, vector<Material> &materials)
+bool OBJLoader::loadOBJ(const char* objPath, vector<vec3> &vertices, vector<vec2> &uvs, vector<vec3> &normals, vector<vec3> &tangent, vector<Material> &materials)
 {
 	string directory = objPath;
 	directory = directory.substr(0, directory.find_last_of("/") + 1);
@@ -111,6 +111,36 @@ bool OBJLoader::loadOBJ(const char* objPath, vector<vec3> &vertices, vector<vec2
 		normals.push_back(normal);
 	}
 
+	//Tangent
+	for (unsigned int i = 0; i < vertices.size(); i += 3)
+	{
+		vec3 p0 = vertices[i];
+		vec3 p1 = vertices[i + 1];
+		vec3 p2 = vertices[i + 2];
+
+		vec2 t0 = uvs[i];
+		vec2 t1 = uvs[i + 1];
+		vec2 t2 = uvs[i + 2];
+
+		vec3 deltaPos1 = p1 - p0;
+		vec3 deltaPos2 = p2 - p0;
+
+		vec2 deltaUv1 = t1 - t0;
+		vec2 deltaUv2 = t2 - t0;
+
+		float r = 1 / (deltaUv1.x * deltaUv2.y - deltaUv2.x * deltaUv1.y);
+
+		vec3 tempTangent;
+		tempTangent.x = r * (deltaUv2.y * deltaPos1.x - deltaUv1.y * deltaPos2.x);
+		tempTangent.y = r * (deltaUv2.y * deltaPos1.y - deltaUv1.y * deltaPos2.y);
+		tempTangent.z = r * (deltaUv2.y * deltaPos1.z - deltaUv1.y * deltaPos2.z);
+		tempTangent = normalize(tempTangent);		
+		
+		tangent.push_back(tempTangent);
+		tangent.push_back(tempTangent);
+		tangent.push_back(tempTangent);
+	}
+
 	return true;
 }
 
@@ -125,8 +155,6 @@ bool OBJLoader::loadMTL(const char* path, const char* mtlFile, vector<Material> 
 	}
 
 	Material tempMaterial;
-	tempMaterial.path = (string)path;
-	tempMaterial.type = "texture_diffuse";
 
 	while (true)
 	{
@@ -181,7 +209,24 @@ bool OBJLoader::loadMTL(const char* path, const char* mtlFile, vector<Material> 
 			char name[128];
 			fscanf(file, "%s", &name);
 			string png = (string)path + (string)name;
-			tempMaterial.id = TextureFromFile(png.c_str());
+
+			Texture tempTexture;
+			tempTexture.id = TextureFromFile(png.c_str());
+			tempTexture.path = path;
+			tempTexture.type = "texture_diffuse";
+			tempMaterial.textures.push_back(tempTexture);
+		}
+		else if (strcmp(fileLine, "map_bump") == 0)
+		{
+			char name[128];
+			fscanf(file, "%s", &name);
+			string png = (string)path + (string)name;
+
+			Texture tempTexture;
+			tempTexture.id = TextureFromFile(png.c_str());
+			tempTexture.path = path;
+			tempTexture.type = "texture_normal";
+			tempMaterial.textures.push_back(tempTexture);
 		}
 	}
 

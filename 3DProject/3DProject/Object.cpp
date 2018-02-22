@@ -14,16 +14,19 @@ void Object::loadObject(const char* objPath, vec3 startPosition)
 	vector<vec3> vertices;
 	vector<vec2> uvs;
 	vector<vec3> normals;
+	vector<vec3> tangents;
 	vector<Material> materials;
-	this->objLoader.loadOBJ(objPath, vertices, uvs, normals, materials);
+	this->objLoader.loadOBJ(objPath, vertices, uvs, normals, tangents, materials);
 
 	vector<Vertex> vertexes;
 	for (int i = 0; i < vertices.size(); i++)
 	{
 		Vertex temp;
-		temp.Position = vertices[i] + startPosition;
+		temp.Position = vertices[i];
 		temp.Normal = normals[i];
 		temp.TexCoords = uvs[i];
+		temp.Tangent = tangents[i];
+		temp.Bitangent = cross(normals[i], tangents[i]);
 		vertexes.push_back(temp);
 	}
 

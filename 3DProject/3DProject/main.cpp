@@ -178,11 +178,11 @@ int main()
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 
 	//Create Terrain
-	terrain = Terrain(vec3(-1, -13.0, -1), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
+	terrain = Terrain(vec3(-1, -13, -1), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
 
 	//Object
 	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(26.0, 0.0, 9.0));
-	objects.loadObject("../Models/Box/box.obj", glm::vec3(25.0, 0.0, 11.0));
+	objects.loadObject("../Models/Box/box.obj", glm::vec3(25.0, -1.0, 11.0));
 
 	//Create gbuffers
 	createGbuffer(); 
@@ -196,17 +196,11 @@ int main()
 	//Add lights
 	lights.push_back(Light(glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
 
-	//Add Models
-	//models.push_back(Model("../Models/HDMonkey/HDMonkey.obj", glm::vec3(2.0, 0.0, 0.0)));
-
 	//Cursor Disabled/non-visible
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	//Depth testing enabled
 	glEnable(GL_DEPTH_TEST);
-
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_BACK);
 
 	//Render Loop
 	while (!glfwWindowShouldClose(window))
@@ -571,7 +565,7 @@ void renderTerrainPass()
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
 
-	glUniform1f(glGetUniformLocation(terrainPass.getShaderProgramID(), "cameraPos"), camera.getPosition()[0]);
+	glUniform3f(glGetUniformLocation(terrainPass.getShaderProgramID(), "cameraPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
 	terrain.Draw(terrainPass);
 
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);

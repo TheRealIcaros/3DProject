@@ -15,6 +15,8 @@ struct Vertex
 	vec3 Position;
 	vec3 Normal;
 	vec2 TexCoords;
+	vec3 Tangent;
+	vec3 Bitangent;
 };
 
 struct Texture
@@ -28,9 +30,7 @@ struct Material
 {
 	string name;
 
-	unsigned int id;
-	string type;
-	string path;
+	vector<Texture> textures;
 
 	vec3 colorAmbient;
 	vec3 colorDiffuse;
@@ -41,6 +41,7 @@ struct Material
 class Mesh
 {
 private:
+	mat4 Model;
 	vec3 localPosition;
 	unsigned int VAO, VBO, EBO;
 	void setupMesh();

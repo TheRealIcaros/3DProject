@@ -5,6 +5,7 @@ layout(location = 2) out vec4 gColorSpec;
 layout(location = 3) out vec4 gColorInfo;
 
 uniform sampler2D texture_diffuse1;
+uniform sampler2D texture_normal1;
 in vec3 FragPos;
 in vec3 FragNormal;
 in vec2 FragUV;
