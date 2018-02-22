@@ -41,6 +41,7 @@ struct Material
 class Mesh
 {
 private:
+	mat4 Model;
 	vec3 localPosition;
 	unsigned int VAO, VBO, EBO;
 	void setupMesh();

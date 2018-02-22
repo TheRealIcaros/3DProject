@@ -18,13 +18,15 @@ out vec2 FragUV;
 out vec3 FragTangent;
 out vec3 FragBitangent;
 
+uniform mat4 Model;
+
 void main()
 {
 	FragUV = vertex_tex;
-	FragPos = (World * vec4(vertex_position, 1.0)).xyz;
+	FragPos = (Model * vec4(vertex_position, 1.0)).xyz;
 	FragNormal = vertex_normal;
-	gl_Position = (Projection * View * World) * vec4(vertex_position, 1.0);
+	gl_Position = (Projection * View * Model) * vec4(vertex_position, 1.0);
 
-	FragTangent = (World * vec4(vertex_tangent, 0.0)).xyz;
-	FragBitangent = (World * vec4(vertex_bitangent, 0.0)).xyz;
+	FragTangent = (Model * vec4(vertex_tangent, 0.0)).xyz;
+	FragBitangent = (Model * vec4(vertex_bitangent, 0.0)).xyz;
 }

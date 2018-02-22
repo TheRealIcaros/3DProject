@@ -78,7 +78,7 @@ void Terrain::createTerrain()
 			position.x = (this->terrainSize / this->imageWidth) * x;
 			position.y = gray + this->terrainPosition.y;
 			position.z = (this->terrainSize / this->imageHeight) * z;
-			vertices.push_back(position + this->terrainPosition);
+			vertices.push_back(position);
 			this->heights[x][z] = float(position.y + this->terrainPosition.y);
 
 			vec2 uv;
@@ -134,7 +134,6 @@ void Terrain::sendToObject()
 	{
 		Vertex temp;
 		temp.Position = vertices[i];
-		//temp.Normal = vec3(0.0, 1.0, 0.0);
 		temp.TexCoords = uvs[i];
 		outData.push_back(temp);
 	}

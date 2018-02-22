@@ -51,6 +51,7 @@ Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Materia
 	this->materials = materials;
 
 	this->localPosition = startPosition;
+	this->Model = translate(this->Model, this->localPosition);
 
 	setupMesh();
 }
@@ -92,6 +93,9 @@ void Mesh::Draw(ShaderCreater shader)
 			glBindTexture(GL_TEXTURE_2D, materials[i].textures[j].id);
 		}
 	}
+
+	GLuint pos = glGetUniformLocation(shader.getShaderProgramID(), "Model");
+	glUniformMatrix4fv(pos, 1, GL_FALSE, &this->Model[0][0]);
 
 	//Draw mesh
 	glBindVertexArray(VAO);

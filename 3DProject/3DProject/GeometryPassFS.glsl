@@ -13,13 +13,6 @@ in vec2 FragUV;
 in vec3 FragTangent;
 in vec3 FragBitangent;
 
-layout(binding = 3, std140) uniform uniformBlock
-{
-	mat4 World;
-	mat4 View;
-	mat4 Projection;
-};
-
 struct Material {
 	vec3 ambient;
 	vec3 diffuse;
@@ -30,12 +23,6 @@ uniform Material material;
 
 void main()
 {
-	//mat3 normalMatrix = transpose(inverse(mat3(World)));
-	/*vec3 T = normalize(normalMatrix * FragTangent);
-	vec3 B = normalize(normalMatrix * FragBitangent);
-	vec3 N = normalize(normalMatrix * FragNormal);*/
-	//mat3 TBN = transpose(mat3(T, B, N));
-	//mat3 TBN = transpose(mat3(FragTangent, FragBitangent, FragNormal));
 	mat3 TBN = mat3(FragTangent, FragBitangent, FragNormal);
 
 	gPosition = FragPos;

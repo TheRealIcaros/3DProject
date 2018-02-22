@@ -17,6 +17,8 @@ vec3 calculateNormal(vec3 pos0, vec3 pos1, vec3 pos2)
 	return normalize(cross(edge0, edge1));;
 }
 
+uniform mat4 Model;
+
 in vec3 GeoPos[];
 in vec2 GeoUV[];
 
@@ -30,13 +32,13 @@ void main()
 
 	for (int i = 0; i < gl_in.length(); i++)
 	{
-		gl_Position = (Projection * View * World) * vec4(gl_in[i].gl_Position.xyz, 1.0);
+		gl_Position = (Projection * View * Model) * vec4(gl_in[i].gl_Position.xyz, 1.0);
 
 		FragUV = GeoUV[i];
 		
-		FragNormal = (World * vec4(-normal, 0.0)).xyz;
+		FragNormal = (Model * vec4(-normal, 0.0)).xyz;
 		
-		FragPos = (World * gl_in[i].gl_Position).xyz;
+		FragPos = (Model * gl_in[i].gl_Position).xyz;
 
 		EmitVertex();
 	}

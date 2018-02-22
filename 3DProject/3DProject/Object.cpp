@@ -22,7 +22,7 @@ void Object::loadObject(const char* objPath, vec3 startPosition)
 	for (int i = 0; i < vertices.size(); i++)
 	{
 		Vertex temp;
-		temp.Position = vertices[i] + startPosition;
+		temp.Position = vertices[i];
 		temp.Normal = normals[i];
 		temp.TexCoords = uvs[i];
 		temp.Tangent = tangents[i];
