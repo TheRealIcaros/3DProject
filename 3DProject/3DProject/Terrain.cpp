@@ -85,10 +85,7 @@ void Terrain::createTerrain()
 			uv.x = (float)(1.0f / (float)this->imageWidth) * (float)x * this->imageScale;
 			uv.y = (float)(1.0f / (float)this->imageHeight) * (float)z * this->imageScale;
 			this->uvs.push_back(uv);
-			
-			//printf("x: %f, y: %f, z: %f\n", position.x, position.y, position.z);
 		}
-		//printf("\n");
 	}
 	triangulate();
 	sendToObject();

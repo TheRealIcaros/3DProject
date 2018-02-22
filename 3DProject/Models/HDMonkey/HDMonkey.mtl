@@ -9,4 +9,4 @@ Ks 0.4 0.4 0.4
 d 1
 illum 2
 map_Kd CubeTest.png
-map_bump brickwall_normal.png
+map_bump plane_normal.png

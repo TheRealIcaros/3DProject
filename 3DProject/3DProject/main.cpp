@@ -182,7 +182,7 @@ int main()
 
 	//Object
 	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(26.0, 0.0, 9.0));
-	objects.loadObject("../Models/Box/box.obj", glm::vec3(25.0, 0.0, 11.0));
+	objects.loadObject("../Models/Box/box.obj", glm::vec3(25.0, -1.0, 11.0));
 
 	//Create gbuffers
 	createGbuffer(); 

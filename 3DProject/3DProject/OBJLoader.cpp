@@ -128,9 +128,14 @@ bool OBJLoader::loadOBJ(const char* objPath, vector<vec3> &vertices, vector<vec2
 		vec2 deltaUv1 = t1 - t0;
 		vec2 deltaUv2 = t2 - t0;
 
-		float r = 1 / (deltaUv1.x * deltaUv2.y - deltaUv1.y * deltaUv2.x);
+		float r = 1 / (deltaUv1.x * deltaUv2.y - deltaUv2.x * deltaUv1.y);
 
-		vec3 tempTangent = (deltaPos1 * deltaPos2.y - deltaPos2 * deltaPos1.y) * r;
+		vec3 tempTangent;
+		tempTangent.x = r * (deltaUv2.y * deltaPos1.x - deltaUv1.y * deltaPos2.x);
+		tempTangent.y = r * (deltaUv2.y * deltaPos1.y - deltaUv1.y * deltaPos2.y);
+		tempTangent.z = r * (deltaUv2.y * deltaPos1.z - deltaUv1.y * deltaPos2.z);
+		tempTangent = normalize(tempTangent);		
+		
 		tangent.push_back(tempTangent);
 		tangent.push_back(tempTangent);
 		tangent.push_back(tempTangent);
