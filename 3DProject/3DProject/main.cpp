@@ -687,6 +687,8 @@ void renderShadowMapping()
 	objects.DrawDepth(shadowMapPass);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	//KALLEA KAFFE
+
 	//Reset Viewport
 	glViewport(0, 0, WIDTH, HEIGHT); // Sets the viewport to the resolution of the application window
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // This clears both the color buffer and the depth buffer
