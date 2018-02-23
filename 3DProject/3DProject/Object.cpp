@@ -19,7 +19,7 @@ void Object::loadObject(const char* objPath, vec3 startPosition)
 	this->objLoader.loadOBJ(objPath, vertices, uvs, normals, tangents, materials);
 
 	vector<Vertex> vertexes;
-	for (int i = 0; i < vertices.size(); i++)
+	for (unsigned int i = 0; i < vertices.size(); i++)
 	{
 		Vertex temp;
 		temp.Position = vertices[i];
@@ -41,9 +41,17 @@ void Object::loadObject(const char* objPath, vec3 startPosition)
 
 void Object::Draw(ShaderCreater shader)
 {
-	for (int i = 0; i < this->meshes.size(); i++)
+	for (unsigned int i = 0; i < this->meshes.size(); i++)
 	{
 		this->meshes[i].Draw(shader);
+	}
+}
+
+void Object::DrawDepth(ShaderCreater shader)
+{
+	for (unsigned int i = 0; i < this->meshes.size(); i++)
+	{
+		this->meshes[i].DrawDepth(shader);
 	}
 }
 

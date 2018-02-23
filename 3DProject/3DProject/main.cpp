@@ -1,8 +1,10 @@
+//Included libraries
 #include <glad\glad.h>
 #include <crtdbg.h>
 #include <stdio.h>
 #include <gl\GL.h>
 #include <matrix.hpp>
+
 //Own classes
 #include "Object.h"
 #include "Camera.h"
@@ -10,11 +12,6 @@
 #include "Model.h"
 #include "ShaderCreater.h"
 #include "Terrain.h"
-
-//3D-math
-//#include <glm.hpp>
-//#include <gtc/matrix_transform.hpp>
-//#include <gtc/type_ptr.hpp>
 
 void initiateGLFW();
 GLFWwindow *createWindow();
@@ -371,6 +368,7 @@ void processInput(GLFWwindow *window)
 	//System inputs
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+
 	if (glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS)
 	{
 		time.active = !time.active;
@@ -381,45 +379,36 @@ void processInput(GLFWwindow *window)
 	//new View inputs for walking on terrain
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		//vec3 lookAt = camera.getLookAtVector();
-		//lookAt.y = 0;
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()));						//"Normal"-Camera
-		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * frustumCamera.getUpVector());	//Frustum-Camera
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()));		//"Normal"-Camera
+		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * frustumCamera.getUpVector());	//Top-Down-Camera
 
-		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);	//Collect info about terrain height
-		camera.setHeight(height + 2);	//Place camera 1 unit over the terrain
+		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);	 //Collect info about terrain height
+		camera.setHeight(height + 2);																//Place camera 1 unit over the terrain
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		//vec3 lookAt = camera.getLookAtVector();
-		//lookAt.y = 0;
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()) * -1.0f);
-		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * frustumCamera.getUpVector() * -1.0f);
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()) * -1.0f);		//"Normal"-Camera
+		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * frustumCamera.getUpVector() * -1.0f);	//Top-Down-Camera
 
-		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);	//Collect info about terrain height
-		camera.setHeight(height + 2);	//Place camera 1 unit over the terrain
+		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);	 //Collect info about terrain height
+		camera.setHeight(height + 2);																//Place camera 1 unit over the terrain
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())) * -1.0f);
-		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(frustumCamera.getLookAtVector(), frustumCamera.getUpVector())) * -1.0f);
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())) * -1.0f);								 //"Normal"-Camera
+		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(frustumCamera.getLookAtVector(), frustumCamera.getUpVector())) * -1.0f);	//Top-Down-Camera
 
-		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);	//Collect info about terrain height
-		camera.setHeight(height + 2);	//Place camera 1 unit over the terrain
+		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);	 //Collect info about terrain height
+		camera.setHeight(height + 2);																//Place camera 1 unit over the terrain
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())));
-		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(frustumCamera.getLookAtVector(), frustumCamera.getUpVector())));
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())));								 //"Normal"-Camera
+		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(frustumCamera.getLookAtVector(), frustumCamera.getUpVector())));	//Top-Down-Camera
 
-		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z); //Collect info about terrain height
-		camera.setHeight(height + 2); //Place camera 1 unit over the terrain
+		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);	 //Collect info about terrain height
+		camera.setHeight(height + 2);																//Place camera 1 unit over the terrain
 	}
-		
-	//if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && cameraSwaped != true)
-	//	camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
-	//if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && cameraSwaped != true)
-	//	camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);
 
 
 	//Change between the two cameras
@@ -433,11 +422,10 @@ void processInput(GLFWwindow *window)
 	}
 	if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
 	{
-
-	/*if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);*/
+		if (cameraSwaped == true)// "Original" camera
+			cameraSwaped = false;
+	}
+	
 
 	if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
 		if (!bloomKey)
@@ -471,11 +459,8 @@ void processInput(GLFWwindow *window)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);*/
-}
-		if (cameraSwaped == true)// "Original" camera
-			cameraSwaped = false;
-	}
-}
+}		
+
 
 void Render()
 {
@@ -771,7 +756,7 @@ void renderLightingPass()
 	//	TODO:(Fix multiple lights and send it to LightingPassFS)
 	GLuint lightPos = glGetUniformLocation(lightingPass.getShaderProgramID(), "nrOfLights");
 	glUniform1i(lightPos, lights.size());
-	for (int i = 0; i < lights.size(); i++)
+	for (unsigned int i = 0; i < lights.size(); i++)
 	{
 		string lightPos = "lights[" + std::to_string(i) + "].Position";
 		string lightColor = "lights[" + std::to_string(i) + "].Color";
