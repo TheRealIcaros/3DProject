@@ -124,6 +124,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="GaussFS.glsl" />
+    <None Include="GaussVS.glsl" />
     <None Include="DebugDepthFS.glsl" />
     <None Include="DebugDepthVS.glsl" />
     <None Include="FrustumFS.glsl">
@@ -136,6 +138,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </None>
     <None Include="GeometryPassFS.glsl" />
+    <None Include="GeometryPassGS.glsl" />
     <None Include="GeometryShader.glsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </None>
@@ -146,6 +149,8 @@
     <None Include="ShadowDepthVS.glsl" />
     <None Include="ShadowFS.glsl" />
     <None Include="ShadowVS.glsl" />
+    <None Include="MergeFS.glsl" />
+    <None Include="MergeVS.glsl" />
     <None Include="TerrainFS.glsl" />
     <None Include="TerrainGS.glsl" />
     <None Include="TerrainVS.glsl" />
