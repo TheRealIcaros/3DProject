@@ -438,13 +438,13 @@ void Render()
 	renderShadowMapping();
 
 	//0.5 Terrain Pass
-	renderTerrainPass();
+	//renderTerrainPass();
 
 	//1. Geometry Pass
-	renderGeometryPass();
+	//renderGeometryPass();
 
 	//2. Lighting Pass
-	renderLightingPass();
+	//renderLightingPass();
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -692,10 +692,10 @@ void renderShadowMapping()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // This clears both the color buffer and the depth buffer
 
 	//2. Second renderpass in shadow mapping
-	//glUseProgram(debugDepthPass.getShaderProgramID());
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, depthMap); 
-	//renderQuad();
+	/*glUseProgram(debugDepthPass.getShaderProgramID());
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, depthMap); 
+	renderQuad();*/
 }
 
 //void renderFrustum()
