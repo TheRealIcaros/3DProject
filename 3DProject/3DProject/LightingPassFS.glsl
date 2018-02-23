@@ -7,7 +7,7 @@ uniform sampler2D gColorSpec;
 uniform sampler2D gColorInfo;
 
 //The shadowmap/depthmap
-uniform sampler2D depthMap;
+//uniform sampler2D depthMap;
 
 in vec2 textureCoordinates;
 
@@ -48,8 +48,8 @@ void main()
 	vec3 lightDir;
 	vec3 reflectDir;
 
-	//vec3 result = (ambient + (1.0 - shadow)) * Color;
-	vec3 result = ambient * Color;
+	vec3 result = (ambient + (1.0 - shadow)) * Color;
+	//vec3 result = ambient * Color;
 
 	for (int i = 0; i < 1; i++)
 	{
@@ -70,8 +70,8 @@ void main()
 		//specular *= attenuation;
 
 		//Result
-		result += ((1.0 - shadow) * (diffuse + specular));
-		//result += diffuse + specular;
+		//result += ((1.0 - shadow) * (diffuse + specular));
+		result += diffuse + specular;
 	}
 	
 	//FragOut
