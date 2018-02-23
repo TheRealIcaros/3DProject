@@ -5,18 +5,12 @@ layout (location = 2) in vec2 vertex_tex;
 layout (location = 3) in vec3 vertex_tangent;
 layout (location = 4) in vec3 vertex_bitangent;
 
-layout(binding = 3, std140) uniform uniformBlock
-{
-	mat4 World;
-	mat4 View;
-	mat4 Projection;
-};
-
 out vec3 GeoPos;
 out vec3 GeoNormal;
 out vec2 GeoUV;
 out vec3 GeoTangent;
 out vec3 GeoBitangent;
+
 
 void main()
 {

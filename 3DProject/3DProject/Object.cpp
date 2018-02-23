@@ -73,3 +73,11 @@ void Object::Sort(vec3 cameraPos)
 		}
 	}
 }
+
+void Object::DrawDepth(ShaderCreater shader)
+{
+	for (int i = 0; i < this->meshes.size(); i++)
+	{
+		this->meshes[i].DrawDepth(shader);
+	}
+}

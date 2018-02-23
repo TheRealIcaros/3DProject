@@ -25,8 +25,6 @@ void gladTest();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void calculateDeltaTime();
 void processInput(GLFWwindow *window);
-//void createShaders();
-void setTriangleData();
 void Render();
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 //void loadTexture(const char* texturePath, GLuint &textureID);
@@ -51,6 +49,8 @@ ShaderCreater geometryPass;
 ShaderCreater lightingPass;
 ShaderCreater gaussPass;
 ShaderCreater mergePass;
+ShaderCreater shadowMapPass;
+ShaderCreater debugDepthPass;
 
 //Lights
 struct Light
@@ -65,9 +65,13 @@ struct Light
 	glm::vec3 lightColor;
 };
 //Shadow Mapping
-const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024; 
+const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 unsigned int depthMapFBO;
 unsigned int depthMap;
+glm::mat4 lightView, lightProjection; //Matrixes for the shadow mapping
+glm::mat4 lightSpaceTransFormMatrix; //Changes world-space coordinates to light-space coordingates
+float shadowNearPlane = 0.10f;
+float shadowFarPlane = 10.0f;
 
 
 vector<Light> lights;
@@ -191,6 +195,8 @@ int main()
 	terrainPass.createShaders("TerrainVS", "TerrainGS", "TerrainFS");
 	geometryPass.createShaders("GeometryPassVS", "GeometryPassGS", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
+	shadowMapPass.createShaders("ShadowVS", "NULL", "ShadowFS");
+	debugDepthPass.createShaders("DebugDepthVS", "NULL", "DebugDepthFS");
 	gaussPass.createShaders("GaussVS", "NULL", "GaussFS");
 	mergePass.createShaders("MergeVS", "NULL", "MergeFS");
 
@@ -198,11 +204,16 @@ int main()
 	terrain = Terrain(vec3(-1, -13, -1), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
 
 	//Object
-	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(26.0, 0.0, 9.0));
-	objects.loadObject("../Models/Box/box.obj", glm::vec3(25.0, 0.0, 11.0));
+	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(6.0, -12.0, 6.0));
+	objects.loadObject("../Models/Box/box.obj", vec3(4.0, -12.0, 6.0));
 
 	//Create buffers
 	createGbuffer(); 
+
+	//Create Depth Map
+	createDepthMapFBO();
+
+	//Light and Gauss
 	createLightBuffer();
 	createGaussBuffer();
 
@@ -210,16 +221,13 @@ int main()
 	//Create UBO
 	createUBO();
 
-	//Set triangle-data
-	//setTriangleData();
-
 	//Add lights
-	//lights.push_back(Light(glm::vec3(26.0, 5.0, 9.0), glm::vec3(1.0, 1.0, 1.0)));
-	lights.push_back(Light(glm::vec3(0.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 1.0)));
+	lights.push_back(Light(glm::vec3(5.0, -8.0, 10.0), glm::vec3(1.0, 1.0, 1.0)));
+
+	/*lights.push_back(Light(glm::vec3(0.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 1.0)));
 	lights.push_back(Light(glm::vec3(0.0, 0.0, 5.0), glm::vec3(0.0, 1.0, 0.0)));
 	lights.push_back(Light(glm::vec3(5.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0)));
-
-	lights.push_back(Light(glm::vec3(0.0, 5.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
+	lights.push_back(Light(glm::vec3(0.0, 5.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));*/
 
 	//Cursor Disabled/non-visible
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -307,83 +315,6 @@ void calculateDeltaTime()
 		time.frames = 0;
 		time.duration = 0.0f;
 	}
-}
-
-void setTriangleData()
-{
-	float vertices[] = 
-	{ 
-		//Back Face
-		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-		//Front Face
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-		//Left Face
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		//Right Face
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		//Bottom Face
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-		//Top Face
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-	};
-
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO); //Generates (1) buffer with VBO id
-
-	glBindVertexArray(VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO); //Binds an array-buffer with VBO 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //Adds the vertices-data to said buffer 
-
-
-	GLuint vertexPos = glGetAttribLocation(geometryPass.getShaderProgramID(), "vertexPosition");
-
-	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	GLuint texture = glGetAttribLocation(geometryPass.getShaderProgramID(), "vertex_tex");
-	glVertexAttribPointer(texture, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	
-	glEnableVertexAttribArray(1);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
 }
 
 void processInput(GLFWwindow *window)
@@ -474,6 +405,9 @@ void Render()
 
 	//Update Inputs
 	gpuBufferData.View = camera.getView();
+	
+	//0.25 Shadow Mapping
+	renderShadowMapping();
 
 	//0.5 Terrain Pass
 	renderTerrainPass();
@@ -540,7 +474,7 @@ void createGbuffer()
 	//normal color buffer
 	glGenTextures(1, &gNormal);
 	glBindTexture(GL_TEXTURE_2D, gNormal);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, WIDTH, HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
@@ -624,7 +558,7 @@ void createLightBuffer()
 void createDepthMapFBO()
 {
 	glGenFramebuffers(1, &depthMapFBO);
-	
+
 	glGenTextures(1, &depthMap);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -638,6 +572,9 @@ void createDepthMapFBO()
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glUseProgram(debugDepthPass.getShaderProgramID());
+	glUniform1i(glGetUniformLocation(debugDepthPass.getShaderProgramID(), "depthMap"), 0);
 }
 
 void renderQuad()
@@ -697,6 +634,13 @@ void renderGeometryPass()
 	/*glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);*/
 
+
+	glActiveTexture(GL_TEXTURE19);
+	//glUniform1i(glGetUniformLocation(geometryPass.getShaderProgramID(), "depthMap"), 19);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+
+	//Back face culling camera pos
+	glUniformMatrix4fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "lightSpaceMatrix"), 1, GL_FALSE, &lightSpaceTransFormMatrix[0][0]);
 	glUniform3fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "cameraPos"), 1, &camera.getPosition()[0]);
 	objects.Draw(geometryPass);
 
@@ -796,20 +740,33 @@ void renderMergePass()
 	renderQuad();
 }
 
-void renderShadowMapping() 
+void renderShadowMapping()
 {
-	//1.
-	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+	//1. First renderpass in shadow mapping
+	lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, shadowNearPlane, shadowFarPlane);
+	//lightProjection = glm::(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
+	//lightView = glm::lookAt(lights[0].lightPos, glm::vec3(0.0), glm::vec3(0.0f, 1.0f, 0.0f));
+	lightView = glm::lookAt(lights[0].lightPos, glm::vec3(5.0f, -10.0f, -15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	lightSpaceTransFormMatrix = lightProjection *  lightView;
+
+	glUseProgram(shadowMapPass.getShaderProgramID());
+	glUniformMatrix4fv(glGetUniformLocation(shadowMapPass.getShaderProgramID(), "lightSpaceMatrix"), 1, GL_FALSE, &lightSpaceTransFormMatrix[0][0]);
+
+	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT); //This sets the viewport to the shadow-mappings resolution
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-		glClear(GL_DEPTH_BUFFER_BIT);
-		//ConfigureShaderAndMatrices();
-		//RenderScene();
+	glClear(GL_DEPTH_BUFFER_BIT); //This clears the depth buffer
+
+	terrain.DrawDepth(shadowMapPass); //Maybe it will be in the final version
+	objects.DrawDepth(shadowMapPass);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	//2. 
-	glViewport(0, 0, WIDTH, HEIGHT);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//ConfigureShaderAndMatrices();
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-	//RenderScene();
+	//Reset Viewport
+	glViewport(0, 0, WIDTH, HEIGHT); // Sets the viewport to the resolution of the application window
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // This clears both the color buffer and the depth buffer
+
+	//2. Second renderpass in shadow mapping
+	//glUseProgram(debugDepthPass.getShaderProgramID());
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, depthMap); 
+	//renderQuad();
 }

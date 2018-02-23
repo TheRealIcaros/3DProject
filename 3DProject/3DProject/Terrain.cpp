@@ -204,3 +204,8 @@ float Terrain::barryCentric(vec3 p1, vec3 p2, vec3 p3, vec2 pos)
 	float l3 = 1.0f - l1 - l2;
 	return l1 * p1.y + l2 * p2.y + l3 * p3.y;
 }
+
+void Terrain::DrawDepth(ShaderCreater shader)
+{
+	this->terrain.DrawDepth(shader);
+}

@@ -51,6 +51,7 @@ public:
 
 	float getHeightOfTerrain(float worldX, float worldZ);
 	float barryCentric(vec3 p1, vec3 p2, vec3 p3, vec2 pos);
+	void DrawDepth(ShaderCreater shader);
 };
 
 #endif // Terrain

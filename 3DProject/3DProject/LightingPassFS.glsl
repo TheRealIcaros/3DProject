@@ -27,6 +27,9 @@ void main()
 	vec3 Normal = texture(gNormal, textureCoordinates).rgb;
 	vec3 Color = texture(gColorSpec, textureCoordinates).rgb;
 
+	//ShadowInfo
+	float shadow = texture(gNormal, textureCoordinates).a;
+
 	//Material info
 	float mAmbient = texture(gColorInfo, textureCoordinates).r;
 	float mDiffuse = texture(gColorInfo, textureCoordinates).g;
@@ -61,7 +64,8 @@ void main()
 		//specular *= attenuation;
 
 		//Result
-		result += diffuse + specular;
+		result += ((1.0 - shadow) * (diffuse + specular));
+		//result += diffuse + specular;
 	}
 	
 	//FragOut

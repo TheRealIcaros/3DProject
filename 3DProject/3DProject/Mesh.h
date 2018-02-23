@@ -57,6 +57,7 @@ public:
 	vec3 getModelPosition();
 
 	void Draw(ShaderCreater shader);
+	void DrawDepth(ShaderCreater shader);
 };
 
 #endif // !MESH_H
