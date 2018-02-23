@@ -688,6 +688,7 @@ void renderShadowMapping()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	//KALLEA KAFFE
+	//Kaffe Kaffe
 
 	//Reset Viewport
 	glViewport(0, 0, WIDTH, HEIGHT); // Sets the viewport to the resolution of the application window
