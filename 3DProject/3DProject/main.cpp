@@ -292,7 +292,6 @@ int main()
 		//Sorts the models
 		objects.Sort(camera.getPosition());
 
-		//Render
 		//Rendering Deferred + Forward(the outlined frustum) if camera swaped
 		Render();
 
@@ -487,10 +486,10 @@ void Render()
 	renderShadowMapping();
 
 	//0.5 Terrain Pass
-	//renderTerrainPass();
+	renderTerrainPass();
 
 	//1. Geometry Pass
-	//renderGeometryPass();
+	renderGeometryPass();
 
 	//2. Lighting Pass
 	renderLightingPass();
