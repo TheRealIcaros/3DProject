@@ -12,17 +12,19 @@ layout(binding = 3, std140) uniform uniformBlock
 	mat4 Projection;
 };
 
+uniform mat4 lightSpaceMatrix;
+
 out vec3 GeoPos;
 out vec3 GeoNormal;
 out vec2 GeoUV;
 out vec3 GeoTangent;
 out vec3 GeoBitangent;
-uniform mat4 lightSpaceMatrix;
+out vec4 fragLightSpace;
 
 out vec3 FragPos;
 out vec3 FragNormal;
 out vec2 FragUV;
-out vec4 fragLightSpace;
+
 
 void main()
 {
