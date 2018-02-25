@@ -65,7 +65,7 @@ void main()
 		vec3 diffuse = (max(dot(Normal, lightDir), 0.0) * Color * mDiffuse) * lights[i].Color;
 
 		//Specular Light
-		float spec = pow(max(dot(viewDir, reflectDir), 0.0), mShininess);
+		float spec = pow(max(dot(viewDir.xyz, reflectDir), 0.0), mShininess);
 		vec3 specular = (spec * mSpecular) * lights[i].Color;
 
 		//Distance

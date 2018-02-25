@@ -49,7 +49,7 @@ void main()
 	gPosition = FragPos;
 
 	vec3 normalMap = texture(texture_normal1, FragUV).rgb;
-	gNormal = normalize(FragNormal + (TBN * normalMap));
+	gNormal = normalize(vec4(FragNormal, 1.0) + vec4((TBN * normalMap), 1.0));
 
 	gNormal.xyz = normalize(FragNormal);
 	gColorSpec.rgb = texture(texture_diffuse1, FragUV).rgb;

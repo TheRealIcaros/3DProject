@@ -460,7 +460,6 @@ void processInput(GLFWwindow *window)
 		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);*/
 }		
 
-
 void Render()
 {
 	//Background Color
@@ -726,7 +725,6 @@ void renderGeometryPass()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-
 void renderLightingPass()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, lBuffer);
@@ -783,7 +781,7 @@ void renderBlurPass()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, pingPongFBO[0]);
 	glUseProgram(gaussPass.getShaderProgramID());
-	glUniform1i(glGetUniformLocation(gaussPass.getShaderProgramID(), "input"), 0);
+	glUniform1i(glGetUniformLocation(gaussPass.getShaderProgramID(), "inputValue"), 0);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, lGlow);
@@ -846,76 +844,8 @@ void renderShadowMapping()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // This clears both the color buffer and the depth buffer
 
 	//2. Second renderpass in shadow mapping
-	glUseProgram(debugDepthPass.getShaderProgramID());
+	/*glUseProgram(debugDepthPass.getShaderProgramID());
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, depthMap); 
-	renderQuad();
+	renderQuad();*/
 }
-
-//void renderFrustum()
-//{
-//	//Set backgroundcolor
-//	glClearColor(0.50f, 0.50f, 0.50f, 0.50f);
-//
-//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//
-//	glUseProgram(frustumPass.getShaderProgramID());
-//
-//	glBindVertexArray(VAO);
-//
-//	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-//	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
-//
-//	glDrawArrays(GL_LINE_STRIP, 0, 24);
-//	//glDrawArrays(GL_TRIANGLES, 0, 8);
-//}
-//
-//void frustum()
-//{
-//
-//	glm::vec3 verticies[8];
-//	for (int i=0; i < 8; i++)
-//	{
-//		glm::vec4 ff = glm::inverse(gpuBufferData.Projection * camera.getView()) * faces[i];
-//		
-//
-//		verticies[i].x = ff.x / ff.w;
-//		verticies[i].y = ff.y / ff.w;
-//		verticies[i].z = ff.z / ff.w;
-//	}
-//
-//	// Vertex Array Object (VAO) 
-//	glGenVertexArrays(1, &VAO);
-//	// create a vertex buffer object (VBO) id
-//	glGenBuffers(1, &VBO);
-//
-//	// bind == enable
-//	glBindVertexArray(VAO);
-//
-//	// Bind the buffer ID as an ARRAY_BUFFER
-//	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-//
-//	// This "could" imply copying to the GPU immediately, depending on what the driver wants to do...
-//	glBufferData(GL_ARRAY_BUFFER, sizeof(verticies), verticies, GL_STATIC_DRAW);
-//
-//	GLuint vertexPos = glGetAttribLocation(frustumPass.getShaderProgramID(), "vertex_position");
-//	if (vertexPos == -1)
-//	{
-//		OutputDebugStringA("Error, cannot find 'vertex_position' attribute in Vertex shader\n");
-//		return;
-//	}
-//
-//	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(0));
-//	// this activates the first and second attributes of this VAO
-//	glEnableVertexAttribArray(0);	
-//
-//	// find out location of input vertex_position in the Vertex Shader 
-//	
-//	// specify that: the vertex attribute at location "vertexPos", of 3 elements of type FLOAT, 
-//	// not normalized, with STRIDE != 0, starts at offset 0 of the gVertexBuffer (it is the last bound!)
-//
-//	glBindBuffer(GL_ARRAY_BUFFER, 0);
-//	glBindVertexArray(0);
-//
-//	
-//}

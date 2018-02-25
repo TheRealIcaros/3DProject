@@ -57,12 +57,6 @@
     <None Include="DebugDepthVS.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="ShadowDepthFS.glsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="ShadowDepthVS.glsl">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="FrustumFS.glsl">
       <Filter>#Unused</Filter>
     </None>
@@ -86,6 +80,12 @@
     </None>
     <None Include="MergeVS.glsl">
       <Filter>Shaders</Filter>
+    </None>
+    <None Include="ShadowDepthFS.glsl">
+      <Filter>#Unused</Filter>
+    </None>
+    <None Include="ShadowDepthVS.glsl">
+      <Filter>#Unused</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

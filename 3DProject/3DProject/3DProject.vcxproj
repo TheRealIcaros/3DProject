@@ -145,8 +145,12 @@
     <None Include="LightingPassFS.glsl" />
     <None Include="LightingPassVS.glsl" />
     <None Include="GeometryPassVS.glsl" />
-    <None Include="ShadowDepthFS.glsl" />
-    <None Include="ShadowDepthVS.glsl" />
+    <None Include="ShadowDepthFS.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="ShadowDepthVS.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
     <None Include="ShadowFS.glsl" />
     <None Include="ShadowVS.glsl" />
     <None Include="MergeFS.glsl" />
