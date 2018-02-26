@@ -28,6 +28,7 @@ private:
 public:
 	Camera();
 	Camera(glm::vec3 cameraPosition, glm::vec3 lookAtVector);
+	Camera(glm::vec3 cameraPosition, glm::vec3 lookAtVector, glm::vec3 upVector);
 	~Camera();
 	void setLookAtVector(glm::vec3 lookAtVector);
 	void moveCameraPosition(glm::vec3 movement);
@@ -44,6 +45,7 @@ public:
 	glm::vec3 getUpVector()const;
 	glm::vec3 getPosition()const;
 	void setPosition(glm::vec3 position);
+	void setCameraPosition(float xaxis, float yaxis, float zaxis);
 	void setHeight(float Y);
 };
 

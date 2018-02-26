@@ -111,6 +111,8 @@ bool intensityKey = false;
 
 //My Camera
 Camera camera;
+Camera frustumCamera(glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
+bool cameraSwaped = false;
 
 //Pitch/Yaw Properties
 bool firstMouse = true;
@@ -317,11 +319,94 @@ void calculateDeltaTime()
 	}
 }
 
+//void processInput(GLFWwindow *window)
+//{
+//	//System inputs
+//	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+//		glfwSetWindowShouldClose(window, true);
+//	if (glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS)
+//	{
+//		time.active = !time.active;
+//		time.duration = 0.0f;
+//		time.frames = 0;
+//	}
+//
+//	//View inputs	// Forward and back in camera xyz coord
+//	/*if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+//		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()));
+//	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+//		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()) * -1.0f);*/
+//
+//	//new View inputs for walking on terrain
+//	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+//	{
+//		vec3 lookAt = camera.getLookAtVector();
+//		lookAt.y = 0;
+//		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(lookAt));
+//
+//		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);
+//		camera.setHeight(height + 1);
+//	}
+//	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+//	{
+//		vec3 lookAt = camera.getLookAtVector();
+//		lookAt.y = 0;
+//		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(lookAt) * -1.0f);
+//
+//		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);
+//		camera.setHeight(height + 1);
+//	}
+//	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+//		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())) * -1.0f);
+//	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+//		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())));
+//
+//	/*if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+//		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
+//	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+//		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);*/
+//
+//	if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
+//		if (!bloomKey)
+//		{
+//			bloomKey = !bloomKey;
+//		}
+//	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+//		if (!glowKey)
+//		{
+//			glowKey = !glowKey;
+//		}
+//	if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
+//		if (!intensityKey)
+//		{
+//			intensityKey = !intensityKey;
+//		}
+//	if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
+//	{
+//		bloomKey = false;
+//		glowKey = false;
+//		intensityKey = false;
+//	}
+//	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+//	{
+//		bloomKey = !false;
+//		glowKey = !false;
+//		intensityKey = !false;
+//	}
+//
+//	/*if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+//		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
+//	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+//		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);*/
+//}
+
+
+//System inputs
 void processInput(GLFWwindow *window)
 {
-	//System inputs
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+
 	if (glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS)
 	{
 		time.active = !time.active;
@@ -329,40 +414,56 @@ void processInput(GLFWwindow *window)
 		time.frames = 0;
 	}
 
-	//View inputs	// Forward and back in camera xyz coord
-	/*if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()));
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()) * -1.0f);*/
-
 	//new View inputs for walking on terrain
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		vec3 lookAt = camera.getLookAtVector();
-		lookAt.y = 0;
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(lookAt));
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()));		//"Normal"-Camera
+		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * frustumCamera.getUpVector());	//Top-Down-Camera
 
-		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);
-		camera.setHeight(height + 1);
+		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);	 //Collect info about terrain height
+		camera.setHeight(height + 2);																//Place camera 1 unit over the terrain
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		vec3 lookAt = camera.getLookAtVector();
-		lookAt.y = 0;
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(lookAt) * -1.0f);
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(camera.getLookAtVector()) * -1.0f);		//"Normal"-Camera
+		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * frustumCamera.getUpVector() * -1.0f);	//Top-Down-Camera
 
-		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);
-		camera.setHeight(height + 1);
+		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);	 //Collect info about terrain height
+		camera.setHeight(height + 2);																//Place camera 1 unit over the terrain
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())) * -1.0f);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())));
+	{
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())) * -1.0f);								 //"Normal"-Camera
+		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(frustumCamera.getLookAtVector(), frustumCamera.getUpVector())) * -1.0f);	//Top-Down-Camera
 
-	/*if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);*/
+		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);	 //Collect info about terrain height
+		camera.setHeight(height + 2);																//Place camera 1 unit over the terrain
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(camera.getLookAtVector(), camera.getUpVector())));								 //"Normal"-Camera
+		frustumCamera.moveCameraPosition((frustumCamera.getSpeed() * time.deltaTime) * glm::normalize(glm::cross(frustumCamera.getLookAtVector(), frustumCamera.getUpVector())));	//Top-Down-Camera
+
+		float height = terrain.getHeightOfTerrain(camera.getPosition().x, camera.getPosition().z);	 //Collect info about terrain height
+		camera.setHeight(height + 2);																//Place camera 1 unit over the terrain
+	}
+
+
+	//Change between the two cameras
+	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+	{
+		if (cameraSwaped == false)
+		{
+			cameraSwaped = true;	// Frustum camera
+			frustumCamera.setCameraPosition(camera.getPosition().x, (camera.getPosition().y + 10.0f), camera.getPosition().z);
+		}
+	}
+	if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
+	{
+		if (cameraSwaped == true)// "Original" camera
+			cameraSwaped = false;
+	}
+
 
 	if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
 		if (!bloomKey)
@@ -393,9 +494,9 @@ void processInput(GLFWwindow *window)
 	}
 
 	/*if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
+	camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector());
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);*/
+	camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);*/
 }
 
 void Render()
@@ -404,8 +505,21 @@ void Render()
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
 	//Update Inputs
-	gpuBufferData.View = camera.getView();
+	//gpuBufferData.View = camera.getView();
 	
+	//Update Inputs
+	if (cameraSwaped == false)
+	{
+		gpuBufferData.View = camera.getView();
+	}
+	else
+	{
+		gpuBufferData.View = frustumCamera.getView();
+
+		//Rendering forward
+		//renderFrustum();
+	}
+
 	//0.25 Shadow Mapping
 	renderShadowMapping();
 
@@ -705,7 +819,7 @@ void renderBlurPass()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, pingPongFBO[0]);
 	glUseProgram(gaussPass.getShaderProgramID());
-	glUniform1i(glGetUniformLocation(gaussPass.getShaderProgramID(), "input"), 0);
+	glUniform1i(glGetUniformLocation(gaussPass.getShaderProgramID(), "inputValue"), 0);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, lGlow);
@@ -761,7 +875,7 @@ void renderShadowMapping()
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	glClear(GL_DEPTH_BUFFER_BIT); //This clears the depth buffer
 
-	terrain.DrawDepth(shadowMapPass); //Maybe it will be in the final version
+	//terrain.DrawDepth(shadowMapPass); //Maybe it will be in the final version
 	objects.DrawDepth(shadowMapPass);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
