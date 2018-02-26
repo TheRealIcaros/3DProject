@@ -44,7 +44,7 @@ void main()
 	vec3 viewDir = normalize(viewPos - FragPos);
 	vec3 lightDir;
 	vec3 reflectDir;
-	vec3 result = ambient * Color;
+	vec3 result = ambient * Color; //ambient * Color;
 	
 	for (int i = 0; i < nrOfLights; i++)
 	{
@@ -66,7 +66,7 @@ void main()
 
 		//Result
 		result += ((1.0 - shadow) * (diffuse + specular));
-		//result += diffuse + specular;
+		//result += (diffuse + specular) * Color;
 	}
 	
 	//FragOut
