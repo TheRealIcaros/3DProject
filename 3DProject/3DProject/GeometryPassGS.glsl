@@ -54,7 +54,8 @@ void main()
 
 			FragBitangent = (Model * vec4(GeoBitangent[i], 0.0)).xyz;
 
-			FragNormal = (Model * vec4(GeoNormal[i], 0.0)).xyz;
+			//FragNormal = (Model * vec4(GeoNormal[i], 0.0)).xyz;
+			FragNormal = (Model * vec4(thisNormal, 0.0)).xyz;
 
 			FragPos = (Model * gl_in[i].gl_Position).xyz;
 

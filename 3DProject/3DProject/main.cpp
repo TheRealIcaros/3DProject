@@ -71,7 +71,7 @@ unsigned int depthMap;
 glm::mat4 lightView, lightProjection; //Matrixes for the shadow mapping
 glm::mat4 lightSpaceTransFormMatrix; //Changes world-space coordinates to light-space coordingates
 float shadowNearPlane = 0.10f;
-float shadowFarPlane = 10.0f;
+float shadowFarPlane = 25.0f;
 
 
 vector<Light> lights;
@@ -200,8 +200,8 @@ int main()
 	gaussPass.createShaders("GaussVS", "NULL", "GaussFS");
 	mergePass.createShaders("MergeVS", "NULL", "MergeFS");
 
-	//Create Terrain
-	terrain = Terrain(vec3(-1, -13, -1), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
+	//Create Terrain	vec3(-1, -13, -1)
+	terrain = Terrain(vec3(-1, -20, -1), "../Models/Terrain/flatMap.bmp", "../Models/Terrain/stoneBrick.png");
 
 	//Object
 	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(6.0, -12.0, 6.0));
@@ -222,7 +222,7 @@ int main()
 	createUBO();
 
 	//Add lights
-	lights.push_back(Light(glm::vec3(5.0, -8.0, 10.0), glm::vec3(1.0, 1.0, 1.0)));
+	lights.push_back(Light(glm::vec3(5.0, -6.0, 12.0), glm::vec3(1.0, 1.0, 1.0)));
 
 	/*lights.push_back(Light(glm::vec3(0.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 1.0)));
 	lights.push_back(Light(glm::vec3(0.0, 0.0, 5.0), glm::vec3(0.0, 1.0, 0.0)));
@@ -609,7 +609,7 @@ void renderQuad()
 void renderTerrainPass()
 {
 	//Use TerrainPass Shader Program
-	glUseProgram(terrainPass.getShaderProgramID());
+	glUseProgram(geometryPass.getShaderProgramID());
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -617,8 +617,8 @@ void renderTerrainPass()
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(valuesFromCPUToGPU), &gpuBufferData);
 
-	glUniform3f(glGetUniformLocation(terrainPass.getShaderProgramID(), "cameraPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
-	terrain.Draw(terrainPass);
+	glUniform3f(glGetUniformLocation(geometryPass.getShaderProgramID(), "cameraPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
+	terrain.Draw(geometryPass);
 
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -636,12 +636,15 @@ void renderGeometryPass()
 
 
 	glActiveTexture(GL_TEXTURE19);
-	//glUniform1i(glGetUniformLocation(geometryPass.getShaderProgramID(), "depthMap"), 19);
+	glUniform1i(glGetUniformLocation(geometryPass.getShaderProgramID(), "depthMap"), 19);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
 
 	//Back face culling camera pos
 	glUniformMatrix4fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "lightSpaceMatrix"), 1, GL_FALSE, &lightSpaceTransFormMatrix[0][0]);
-	glUniform3fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "cameraPos"), 1, &camera.getPosition()[0]);
+	glUniform3fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "cameraPos"), 1, &camera.getPosition()[0]); 
+	vec3 lightDir = vec3(5.0, -12.0, 6.0);
+	glUniform3fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "lightDir"), 1, &lightDir[0]);
+
 	objects.Draw(geometryPass);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -743,10 +746,10 @@ void renderMergePass()
 void renderShadowMapping()
 {
 	//1. First renderpass in shadow mapping
-	lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, shadowNearPlane, shadowFarPlane);
+	lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, shadowNearPlane, shadowFarPlane);
 	//lightProjection = glm::(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
 	//lightView = glm::lookAt(lights[0].lightPos, glm::vec3(0.0), glm::vec3(0.0f, 1.0f, 0.0f));
-	lightView = glm::lookAt(lights[0].lightPos, glm::vec3(5.0f, -10.0f, -15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	lightView = glm::lookAt(lights[0].lightPos, glm::vec3(5.0, -12.0, 6.0), glm::vec3(0.0f, 1.0f, 0.0f));
 	lightSpaceTransFormMatrix = lightProjection *  lightView;
 
 	glUseProgram(shadowMapPass.getShaderProgramID());
@@ -756,7 +759,7 @@ void renderShadowMapping()
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	glClear(GL_DEPTH_BUFFER_BIT); //This clears the depth buffer
 
-	terrain.DrawDepth(shadowMapPass); //Maybe it will be in the final version
+	//terrain.DrawDepth(shadowMapPass); //Maybe it will be in the final version
 	objects.DrawDepth(shadowMapPass);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

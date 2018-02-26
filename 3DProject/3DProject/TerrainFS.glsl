@@ -1,6 +1,6 @@
 #version 430
 layout(location = 0) out vec3 gPosition;
-layout(location = 1) out vec3 gNormal;
+layout(location = 1) out vec4 gNormal;
 layout(location = 2) out vec4 gColorSpec;
 layout(location = 3) out vec4 gColorInfo;
 
@@ -21,7 +21,7 @@ uniform Material material;
 void main()
 {
 	gPosition = FragPos;
-	gNormal = normalize(FragNormal);
+	gNormal.xyz = normalize(FragNormal).xyz;
 	gColorSpec.rgb = texture(texture_diffuse1, FragUV).rgb;
 
 	gColorInfo.x = material.ambient.x;

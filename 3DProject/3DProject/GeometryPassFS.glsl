@@ -24,11 +24,12 @@ struct Material {
 uniform Material material;
 
 uniform sampler2D depthMap;
+uniform vec3 lightDir;
 
 float ShadowCalc(vec4 lightSpace)
 {
 	//Perform perspective division
-	vec3 projectionCoords = FragLightSpace.xyz / FragLightSpace.w;
+	vec3 projectionCoords = lightSpace.xyz / lightSpace.w;
 
 	//Change the NDC to a range of [0,1] to match depth-map range
 	projectionCoords = projectionCoords * 0.5 + 0.5;
@@ -37,7 +38,8 @@ float ShadowCalc(vec4 lightSpace)
 
 	float currentDepth = projectionCoords.z;
 
-	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
+	float bias = max(0.05 * (1.0 - dot(FragNormal, lightDir)), 0.005);
+	float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
 
 	return shadow;
 }

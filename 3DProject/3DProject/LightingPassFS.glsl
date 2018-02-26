@@ -20,6 +20,7 @@ uniform Light lights[lightNr];
 uniform vec3 viewPos;
 uniform bool glowKey;
 uniform bool intensityKey;
+
 void main()
 {
 	//Get Data from gBuffer
