@@ -866,8 +866,6 @@ void renderShadowMapping()
 	lightView = glm::lookAt(lights[0].lightPos, glm::vec3(5.0, -12.0, 6.0), glm::vec3(0.0f, 1.0f, 0.0f));
 	lightSpaceTransFormMatrix = lightProjection *  lightView;
 
-
-	glCullFace(GL_FRONT);
 	glUseProgram(shadowMapPass.getShaderProgramID());
 	glUniformMatrix4fv(glGetUniformLocation(shadowMapPass.getShaderProgramID(), "lightSpaceMatrix"), 1, GL_FALSE, &lightSpaceTransFormMatrix[0][0]);
 
@@ -881,7 +879,6 @@ void renderShadowMapping()
 
 
 	//Reset Viewport
-	glCullFace(GL_NONE);
 	glViewport(0, 0, WIDTH, HEIGHT); // Sets the viewport to the resolution of the application window
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // This clears both the color buffer and the depth buffer
 

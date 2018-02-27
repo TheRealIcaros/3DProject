@@ -30,16 +30,18 @@ float ShadowCalc(vec4 lightSpace)
 {
 	//Perform perspective division
 	vec3 projectionCoords = lightSpace.xyz / lightSpace.w;
-
+	float shadow = 0.0f;
 	//Change the NDC to a range of [0,1] to match depth-map range
 	projectionCoords = projectionCoords * 0.5 + 0.5;
+	if (projectionCoords.x == clamp(projectionCoords.x, 0.0, 1.0) && projectionCoords.y == clamp(projectionCoords.y, 0.0, 1.0))
+	{
+		float closestDepth = texture(depthMap, projectionCoords.xy).r;
 
-	float closestDepth = texture(depthMap, projectionCoords.xy).r;
+		float currentDepth = projectionCoords.z;
 
-	float currentDepth = projectionCoords.z;
-
-	float bias = max(0.05 * (1.0 - dot(FragNormal, lightDir)), 0.005);
-	float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+		float bias = max(0.05 * (1.0 - dot(FragNormal, lightDir)), 0.005);
+		shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+	}
 
 	return shadow;
 }
