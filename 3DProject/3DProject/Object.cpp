@@ -81,3 +81,11 @@ void Object::DrawDepth(ShaderCreater shader)
 		this->meshes[i].DrawDepth(shader);
 	}
 }
+
+void Object::deallocate()
+{
+	for (int i = 0; i < this->meshes.size(); i++)
+	{
+		this->meshes[i].deallocate();
+	}
+}

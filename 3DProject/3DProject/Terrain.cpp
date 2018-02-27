@@ -26,25 +26,27 @@ Terrain::~Terrain()
 
 void Terrain::deallocate()
 {
-	for (int i = 0; i < this->imageHeight; i++)
+	for (int i = 0; i < this->imageWidth; i++)
 	{
-		delete[] this->heights[i];
+		delete this->heights[i];
 	}
 	delete[] this->heights;
+
+	this->terrain.deallocate();
 }
 
 unsigned char* Terrain::loadHeightMap(const char *path)
 {
 	int nrChannels;
 	unsigned char* data = SOIL_load_image(path, &this->imageWidth, &this->imageHeight, &nrChannels, 0);
-	
+
 	if (this->imageWidth != this->imageHeight)
 	{
 		std::cout << "Height map not square" << endl;
 		SOIL_free_image_data(data);
 		data = NULL;
 	}
-	else if(!data)
+	if(!data)
 	{
 		std::cout << "Failed to load height map" << endl;
 		SOIL_free_image_data(data);

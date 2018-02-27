@@ -141,6 +141,7 @@ bool OBJLoader::loadOBJ(const char* objPath, vector<vec3> &vertices, vector<vec2
 		tangent.push_back(tempTangent);
 	}
 
+	fclose(file);
 	return true;
 }
 
@@ -230,6 +231,7 @@ bool OBJLoader::loadMTL(const char* path, const char* mtlFile, vector<Material> 
 		}
 	}
 
+	fclose(file);
 	return true;
 }
 

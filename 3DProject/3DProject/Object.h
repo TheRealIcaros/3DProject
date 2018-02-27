@@ -17,6 +17,7 @@ public:
 	void Draw(ShaderCreater shader);
 	void Sort(vec3 cameraPos);
 	void DrawDepth(ShaderCreater shader);
+	void deallocate();
 };
 
 #endif // !OBJECT_H

@@ -58,6 +58,7 @@ public:
 
 	void Draw(ShaderCreater shader);
 	void DrawDepth(ShaderCreater shader);
+	void deallocate();
 };
 
 #endif // !MESH_H

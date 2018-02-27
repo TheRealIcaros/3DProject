@@ -58,7 +58,7 @@ Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Materia
 
 Mesh::~Mesh()
 {
-
+	
 }
 
 vec3 Mesh::getModelPosition()
@@ -119,4 +119,11 @@ void Mesh::DrawDepth(ShaderCreater shader)
 	glBindVertexArray(0);
 
 	glActiveTexture(GL_TEXTURE0);
+}
+
+void Mesh::deallocate()
+{
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &EBO);
 }

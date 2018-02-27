@@ -73,7 +73,6 @@ glm::mat4 lightSpaceTransFormMatrix; //Changes world-space coordinates to light-
 float shadowNearPlane = 0.10f;
 float shadowFarPlane = 25.0f;
 
-
 vector<Light> lights;
 
 //Terrain
@@ -194,16 +193,16 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 	//Create Shaders
-	terrainPass.createShaders("TerrainVS", "TerrainGS", "TerrainFS");
+	//terrainPass.createShaders("TerrainVS", "TerrainGS", "TerrainFS");
 	geometryPass.createShaders("GeometryPassVS", "GeometryPassGS", "GeometryPassFS");
 	lightingPass.createShaders("LightingPassVS", "NULL", "LightingPassFS");
 	shadowMapPass.createShaders("ShadowVS", "NULL", "ShadowFS");
-	debugDepthPass.createShaders("DebugDepthVS", "NULL", "DebugDepthFS");
+	//debugDepthPass.createShaders("DebugDepthVS", "NULL", "DebugDepthFS");
 	gaussPass.createShaders("GaussVS", "NULL", "GaussFS");
 	mergePass.createShaders("MergeVS", "NULL", "MergeFS");
 
-	//Create Terrain	vec3(-1, -13, -1)
-	terrain = Terrain(vec3(-1, -20, -1), "../Models/Terrain/flatMap.bmp", "../Models/Terrain/stoneBrick.png");
+	//Somewhere in terrain there is a memory leak. If you comment this out the memory leak will dissapear.
+	terrain = Terrain(vec3(-1, -14, -1), "../Models/Terrain/heightMap.bmp", "../Models/Terrain/stoneBrick.png");
 
 	//Object
 	objects.loadObject("../Models/HDMonkey/HDMonkey.obj", vec3(6.0, -12.0, 6.0));
@@ -218,7 +217,6 @@ int main()
 	//Light and Gauss
 	createLightBuffer();
 	createGaussBuffer();
-
 
 	//Create UBO
 	createUBO();
@@ -262,6 +260,7 @@ int main()
 	glDeleteBuffers(1, &VBO);
 
 	terrain.deallocate();
+	objects.deallocate();
 	glfwTerminate();
 	return 0;
 }
@@ -399,7 +398,6 @@ void calculateDeltaTime()
 //	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 //		camera.moveCameraPosition((camera.getSpeed() * time.deltaTime) * camera.getUpVector() * -1.0f);*/
 //}
-
 
 //System inputs
 void processInput(GLFWwindow *window)
@@ -764,6 +762,7 @@ void renderGeometryPass()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
+
 
 void renderLightingPass()
 {
