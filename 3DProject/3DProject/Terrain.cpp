@@ -78,17 +78,14 @@ void Terrain::createTerrain()
 			position.x = (this->terrainSize / this->imageWidth) * x;
 			position.y = gray + this->terrainPosition.y;
 			position.z = (this->terrainSize / this->imageHeight) * z;
-			vertices.push_back(position + this->terrainPosition);
+			vertices.push_back(position);
 			this->heights[x][z] = float(position.y + this->terrainPosition.y);
 
 			vec2 uv;
 			uv.x = (float)(1.0f / (float)this->imageWidth) * (float)x * this->imageScale;
 			uv.y = (float)(1.0f / (float)this->imageHeight) * (float)z * this->imageScale;
 			this->uvs.push_back(uv);
-			
-			//printf("x: %f, y: %f, z: %f\n", position.x, position.y, position.z);
 		}
-		//printf("\n");
 	}
 	triangulate();
 	sendToObject();
@@ -134,7 +131,6 @@ void Terrain::sendToObject()
 	{
 		Vertex temp;
 		temp.Position = vertices[i];
-		//temp.Normal = vec3(0.0, 1.0, 0.0);
 		temp.TexCoords = uvs[i];
 		outData.push_back(temp);
 	}
@@ -142,8 +138,12 @@ void Terrain::sendToObject()
 	vector<Material> materials;
 	Material material;
 	material.name = "Terrain";
-	material.id = objLoader.TextureFromFile(this->texturePath.c_str());
-	material.type = "texture_diffuse";
+	Texture tempTexture;
+	tempTexture.id = objLoader.TextureFromFile(this->texturePath.c_str());
+	tempTexture.type = "texture_diffuse";
+	tempTexture.path = this->texturePath;
+	material.textures.push_back(tempTexture);
+
 	material.colorAmbient = vec3(0.5, 0.2, 0.2);
 	material.colorDiffuse = vec3(0.4, 0.8, 0.8);
 	material.colorSpecular = vec3(0.1, 0.8, 0.8);

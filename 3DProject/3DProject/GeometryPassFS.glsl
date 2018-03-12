@@ -5,10 +5,14 @@ layout(location = 2) out vec4 gColorSpec;
 layout(location = 3) out vec4 gColorInfo;
 
 uniform sampler2D texture_diffuse1;
+uniform sampler2D texture_normal1;
+
 in vec3 FragPos;
 in vec3 FragNormal;
 in vec2 FragUV;
 in vec4 fragLightSpace;
+in vec3 FragTangent;
+in vec3 FragBitangent;
 
 struct Material {
 	vec3 ambient;
@@ -40,9 +44,16 @@ float ShadowCalc(vec4 lightSpace)
 
 void main()
 {
+	mat3 TBN = mat3(FragTangent, FragBitangent, FragNormal);
+
 	gPosition = FragPos;
+
+	vec3 normalMap = texture(texture_normal1, FragUV).rgb;
+	gNormal = normalize(vec4(FragNormal, 1.0) + vec4((TBN * normalMap), 1.0));
+
 	gNormal.xyz = normalize(FragNormal);
 	gColorSpec.rgb = texture(texture_diffuse1, FragUV).rgb;
+
 
 	gColorInfo.x = material.ambient.x;
 	gColorInfo.y = material.diffuse.x;

@@ -19,7 +19,7 @@ public:
 	~OBJLoader();
 
 	bool loadOBJ(const char* objPath, vector<vec3> &vertices, 
-		vector<vec2> &uvs, vector<vec3> &normals, vector<Material> &materials);
+		vector<vec2> &uvs, vector<vec3> &normals, vector<vec3> &tangent, vector<Material> &materials);
 	bool loadMTL(const char* path, const char* mtlFile, vector<Material> &materials);
 	unsigned int TextureFromFile(const char* texturePath);
 };
