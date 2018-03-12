@@ -481,14 +481,16 @@ void Render()
 		//renderFrustum();
 	}
 	
-	//1.5 Shadow Pass
-	renderShadowMapping();
+	
 
 	//0.5 Terrain Pass
-	//renderTerrainPass();
+	renderTerrainPass();
 
 	//1. Geometry Pass
-	//renderGeometryPass();
+	renderGeometryPass();
+
+	//1.5 Shadow Pass
+	renderShadowMapping();
 
 	//2. Lighting Pass
 	renderLightingPass();
