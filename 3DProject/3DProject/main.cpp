@@ -751,8 +751,8 @@ void renderGeometryPass()
 	glUniform1i(glGetUniformLocation(geometryPass.getShaderProgramID(), "depthMap"), 19);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
 
-	//Back face culling camera pos
 	glUniformMatrix4fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "lightSpaceMatrix"), 1, GL_FALSE, &lightSpaceTransFormMatrix[0][0]);
+	//Back face culling camera pos
 	glUniform3fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "cameraPos"), 1, &camera.getPosition()[0]); 
 	vec3 lightDir = vec3(5.0, -12.0, 6.0);
 	glUniform3fv(glGetUniformLocation(geometryPass.getShaderProgramID(), "lightDir"), 1, &lightDir[0]);

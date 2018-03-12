@@ -31,7 +31,7 @@ void Terrain::deallocate()
 		delete this->heights[i];
 	}
 	delete[] this->heights;
-
+	SOIL_free_image_data(this->imageData);
 	this->terrain.deallocate();
 }
 
